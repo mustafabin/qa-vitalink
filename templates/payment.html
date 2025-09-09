@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ .page.Title }}</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+        margin: 0;
+        padding: 2rem;
+        background: #f8fafc;
+        color: #0f172a;
+      }
+      .container {
+        max-width: 720px;
+        margin: 0 auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(2, 6, 23, 0.06);
+        padding: 2rem;
+      }
+      .h {
+        font-weight: 700;
+        margin: 0 0 8px;
+      }
+      .sub {
+        color: #475569;
+        margin: 0 0 16px;
+      }
+      .card {
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 16px;
+        margin-top: 16px;
+      }
+      .btn {
+        display: inline-block;
+        padding: 0.8rem 1.2rem;
+        border-radius: 10px;
+        background: #111827;
+        color: #fff;
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .note {
+        color: #64748b;
+        font-size: 0.9rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="h">{{ .page.StoreName }}</h1>
+      <h2 class="h">{{ .page.Title }}</h2>
+      <p class="sub">{{ .page.Description }}</p>
+      <div class="card">
+        <p><strong>Amount:</strong> {{ formatAmount .page.AmountCents .page.Currency }}</p>
+        <div id="applepay-container"></div>
+        <button id="pay" class="btn">Pay with Apple Pay</button>
+        <p id="msg" class="note"></p>
+      </div>
+    </div>
+    <div
+      id="page-data"
+      data-merchant-id="{{ .page.MerchantID }}"
+      data-page-uid="{{ .page.PageUID }}"
+      data-store-name="{{ .page.StoreName }}"></div>
+    <script>
+      ;(function () {
+        var el = document.getElementById("page-data")
+        var merchantId = el.dataset.merchantId
+        var pageUid = el.dataset.pageUid
+        var storeName = el.dataset.storeName
+        var validateUrl = "/api/applepay/validate"
+        var tokenizeUrl = "/api/applepay/tokenize"
+        var chargeUrl = "/api/payments/" + merchantId + "/" + pageUid + "/charge"
+
+        var msg = document.getElementById("msg")
+        document.getElementById("pay").addEventListener("click", async function () {
+          msg.textContent = ""
+          try {
+            // 1) Merchant validation (in a real impl, use ApplePaySession and pass its validationURL)
+            var validationUrlFromApple = "https://apple-pay-gateway.apple.com/paymentservices/startSession"
+            var res = await fetch(validateUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                validationUrl: validationUrlFromApple,
+                domain: location.hostname,
+                store_name: storeName,
+              }),
+            })
+            if (!res.ok) throw new Error("Validation failed")
+            var merchantSession = await res.json()
+
+            // 2) Tokenize (simulate token from ApplePaySession on the client)
+            res = await fetch(tokenizeUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ token: { paymentData: { dummy: true } } }),
+            })
+            if (!res.ok) throw new Error("Tokenize failed")
+            var tok = await res.json()
+            var datacapToken = tok.datacap_token || tok.token || tok.id || tok.value || "sample-token"
+
+            // 3) Charge (server authoritative amount)
+            res = await fetch(chargeUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ datacap_token: datacapToken }),
+            })
+            var body = await res.json()
+            if (!res.ok) throw new Error((body && body.message) || "Charge failed")
+            if (body.approved) {
+              msg.textContent = "Approved: " + (body.auth_code || "")
+            } else {
+              msg.textContent = "Declined: " + (body.message || "")
+            }
+          } catch (e) {
+            msg.textContent = "Error: " + (e && e.message ? e.message : String(e))
+          }
+        })
+      })()
+    </script>
+  </body>
+</html>
