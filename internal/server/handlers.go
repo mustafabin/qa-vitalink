@@ -211,8 +211,8 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	reqHttp.Header.Set("Content-Type", "application/json")
 	reqHttp.Header.Set("Accept", "application/json")
 	reqHttp.Header.Set("User-Agent", "vitalink")
-	reqHttp.Header.Set("Authorization", page.MerchantID)
-	log.Println("request auth", page.MerchantID)
+	reqHttp.Header.Set("Authorization", page.PublicToken)
+	log.Println("request auth", page.PublicToken)
 
 	resp, err := http.DefaultClient.Do(reqHttp)
 	if err != nil {
