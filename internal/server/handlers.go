@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -208,7 +209,10 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 		return c.JSON(http.StatusInternalServerError, map[string]any{"error": "request build error"})
 	}
 	reqHttp.Header.Set("Content-Type", "application/json")
+	reqHttp.Header.Set("Accept", "application/json")
+	reqHttp.Header.Set("User-Agent", "vitalink")
 	reqHttp.Header.Set("Authorization", page.MerchantID)
+	log.Println("request auth", page.MerchantID)
 
 	resp, err := http.DefaultClient.Do(reqHttp)
 	if err != nil {
@@ -217,6 +221,7 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	defer resp.Body.Close()
 	respBytes, _ := io.ReadAll(resp.Body)
 
+	log.Println("respBytes", string(respBytes))
 	var dcResp map[string]any
 	_ = json.Unmarshal(respBytes, &dcResp)
 
