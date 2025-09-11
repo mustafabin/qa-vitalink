@@ -231,16 +231,19 @@
             try {
               const last4 = response.Last4 || response.last4 || response.cardLast4 || undefined
               const brand = response.Brand || response.brand || response.CardBrand || undefined
-              console.log("[Datacap] Tokenization response:", response) // no PAN present
-              console.log("[Datacap] Token:", token, "| Brand:", brand, "| Last4:", last4)
+              console.log("[Datacap] Tokenization response:", response)
             } catch (_) {}
 
-            tokenVal.textContent = token
-            tokenBox.classList.remove("hidden")
-            try {
-              respJson.textContent = JSON.stringify(response, null, 2)
-            } catch (_) {}
+            let tokenResult = document.getElementById("token_result")
+            tokenResult.classList.remove("hidden")
+            let tokenValue = document.getElementById("token_value")
+            tokenValue.textContent = token
+            let tokenJson = document.getElementById("token_json")
+            tokenJson.textContent = JSON.stringify(response, null, 2)
+            let respDetails = document.getElementById("resp_details")
+            respDetails.classList.remove("hidden")
           }
+          console.log("requesting token")
           DatacapWebToken.requestToken(webTokenMid, "payment_form", tokenCallback)
         })
 
