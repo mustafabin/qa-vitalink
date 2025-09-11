@@ -138,6 +138,10 @@
           </div>
         </div>
       </div>
+      <div class="mt-6 text-center">
+        <p class="text-sm text-slate-600">Want to share this page with others?</p>
+        <img class="mx-auto mt-3 rounded-lg border border-slate-200 shadow-sm" src="/qr/{{ .page.MerchantID }}/{{ .page.PageUID }}" alt="Share QR code" />
+      </div>
     </div>
 
     <div
@@ -158,7 +162,7 @@
         let amountCents = parseInt(el.dataset.amountCents || "0", 10)
         let currency = el.dataset.currency || "USD"
         let applePayMid = el.dataset.applePayMid || ""
-        let webTokenMid = el.dataset.webTokenMid || ""
+        let webTokenMid = el.dataset.webtokenMid || "";
 
         let chargeUrl = "/api/payments/" + merchantId + "/" + pageUid + "/charge"
         let tokenizeUrl = "/api/applepay/tokenize"
@@ -206,17 +210,17 @@
             setMsg("")
 
             if (!response) {
-              errs.textContent = "No response from tokenization"
+              paymentErrors.textContent = "No response from tokenization"
               return
             }
             if (response.Error) {
-              errs.textContent = response.Error
+              paymentErrors.textContent = response.Error
               return
             }
 
             const token = response.Token || response.token || response.id
             if (!token) {
-              errs.textContent = "No token returned"
+              paymentErrors.textContent = "No token returned"
               return
             }
 
