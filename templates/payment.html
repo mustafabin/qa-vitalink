@@ -18,31 +18,37 @@
         <div class="p-5">
           <p class="font-semibold mb-3"><span class="font-bold">Amount:</span> {{ formatAmount .page.AmountCents .page.Currency }}</p>
           <div class="flex flex-col gap-3 mb-5">
-            <label class="flex w-full flex-row sm:items-center justify-between gap-3 p-3 border border-slate-200 rounded-lg cursor-pointer bg-white">
-              <div class="flex flex-1 items-center justify-between">
+            <label
+              class="flex w-full flex-row flex-wrap items-center justify-between gap-3 p-3 border border-slate-200 rounded-lg cursor-pointer bg-white">
+              <div class="flex items-center gap-3 min-w-0 flex-1">
                 <input type="radio" name="method" id="method-credit" value="credit" checked class="h-5 w-5 accent-violet-600" />
-                <p class="font-medium whitespace-nowrap">Credit Card</p>
+                <p class="font-medium truncate">Credit Card</p>
               </div>
-              <div class="flex items-center gap-1 w-[60px] sm:ml-auto">
+              <div class="flex items-center gap-1 sm:ml-auto flex-shrink-0 flex-wrap">
                 <div class="w-8 h-5 rounded bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center">VISA</div>
                 <div class="w-8 h-5 rounded relative flex items-center justify-center">
                   <div class="w-3 h-3 rounded-full bg-red-500 opacity-90 absolute left-1"></div>
                   <div class="w-3 h-3 rounded-full bg-orange-400 absolute left-3.5"></div>
                 </div>
+                <div class="w-8 h-5 rounded bg-slate-800 text-white text-[10px] font-bold flex items-center justify-center">AMEX</div>
+                <div class="w-8 h-5 rounded bg-orange-500 text-white text-[10px] font-bold flex items-center justify-center">DISC</div>
               </div>
             </label>
 
-            <label id="method-apple-wrapper" class="hidden flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border border-slate-200 rounded-lg cursor-pointer bg-white">
-              <div class="flex items-center gap-3">
+            <label
+              id="method-apple-wrapper"
+              class="hidden w-full flex flex-row flex-wrap items-center justify-between gap-3 p-3 border border-slate-200 rounded-lg cursor-pointer bg-white">
+              <div class="flex items-center gap-3 min-w-0 flex-1">
                 <input type="radio" name="method" id="method-apple" value="apple" class="h-5 w-5 accent-violet-600" />
-                <span class="flex items-center gap-2">
+                <span class="flex items-center gap-2 truncate">
                   <svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor" aria-hidden="true">
-                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                    <path
+                      d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65 .03 2.47 .26 3.64 1.98-.09 .06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03 .07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69 .85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
                   </svg>
                   <span class="font-medium">Apple Pay</span>
                 </span>
               </div>
-              <div class="sm:ml-auto"></div>
+              <div class="sm:ml-auto flex-shrink-0"></div>
             </label>
           </div>
 
@@ -50,30 +56,80 @@
             <form id="payment_form" onsubmit="return false;" autocomplete="on" class="space-y-4">
               <div>
                 <label for="cardNumber" class="block text-sm font-medium mb-1">Card number</label>
-                <input id="cardNumber" type="tel" inputmode="numeric" pattern="[0-9]*" data-token="card_number" placeholder="**** **** **** ****" autocomplete="cc-number" required class="h-12 w-full rounded-xl border border-slate-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
+                <input
+                  id="cardNumber"
+                  type="tel"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                  data-token="card_number"
+                  placeholder="**** **** **** ****"
+                  autocomplete="cc-number"
+                  required
+                  class="h-12 w-full rounded-xl border border-slate-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
               </div>
               <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label for="expMonth" class="block text-sm font-medium mb-1">Expiry month</label>
-                  <input id="expMonth" type="tel" inputmode="numeric" pattern="[0-9]*" data-token="exp_month" placeholder="MM" maxlength="2" autocomplete="cc-exp-month" required class="h-12 w-full rounded-xl border border-slate-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
+                  <input
+                    id="expMonth"
+                    type="tel"
+                    inputmode="numeric"
+                    pattern="[0-9]*"
+                    data-token="exp_month"
+                    placeholder="MM"
+                    maxlength="2"
+                    autocomplete="cc-exp-month"
+                    required
+                    class="h-12 w-full rounded-xl border border-slate-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
                 </div>
                 <div>
                   <label for="expYear" class="block text-sm font-medium mb-1">Expiry year</label>
-                  <input id="expYear" type="tel" inputmode="numeric" pattern="[0-9]*" data-token="exp_year" placeholder="YYYY" maxlength="4" autocomplete="cc-exp-year" required class="h-12 w-full rounded-xl border border-slate-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
+                  <input
+                    id="expYear"
+                    type="tel"
+                    inputmode="numeric"
+                    pattern="[0-9]*"
+                    data-token="exp_year"
+                    placeholder="YYYY"
+                    maxlength="4"
+                    autocomplete="cc-exp-year"
+                    required
+                    class="h-12 w-full rounded-xl border border-slate-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
                 </div>
               </div>
               <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label for="cvv" class="block text-sm font-medium mb-1">Security code</label>
-                  <input id="cvv" type="tel" inputmode="numeric" pattern="[0-9]*" data-token="cvv" placeholder="CVC" maxlength="4" autocomplete="cc-csc" required class="h-12 w-full rounded-xl border border-slate-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
+                  <input
+                    id="cvv"
+                    type="tel"
+                    inputmode="numeric"
+                    pattern="[0-9]*"
+                    data-token="cvv"
+                    placeholder="CVC"
+                    maxlength="4"
+                    autocomplete="cc-csc"
+                    required
+                    class="h-12 w-full rounded-xl border border-slate-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
                 </div>
                 <div>
                   <label for="postal" class="block text-sm font-medium mb-1">Postal code</label>
-                  <input id="postal" type="text" data-token="postal_code" placeholder="12345" autocomplete="postal-code" class="h-12 w-full rounded-xl border border-slate-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
+                  <input
+                    id="postal"
+                    type="text"
+                    data-token="postal_code"
+                    placeholder="12345"
+                    autocomplete="postal-code"
+                    class="h-12 w-full rounded-xl border border-slate-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
                 </div>
               </div>
               <div class="pt-1">
-                <button id="pay_button" type="button" class="w-full h-12 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-semibold">Pay</button>
+                <button
+                  id="pay_button"
+                  type="button"
+                  class="w-full h-12 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-semibold">
+                  Pay
+                </button>
               </div>
               <p id="payment_errors" class="text-sm text-red-600"></p>
             </form>
@@ -82,7 +138,9 @@
 
           <div id="apple-pay-section" class="hidden mt-3">
             <div id="apple-pay-button" class="mb-2"></div>
-            <button id="pay-apple" class="w-full h-12 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-semibold hidden">Pay with Apple Pay</button>
+            <button id="pay-apple" class="w-full h-12 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-semibold hidden">
+              Pay with Apple Pay
+            </button>
             <p class="text-sm text-slate-500 mt-2">Not seeing Apple Pay? Use Safari on iOS 10+ or macOS 10.12+ with an active wallet.</p>
           </div>
         </div>
@@ -113,16 +171,20 @@
         let tokenizeUrl = "/api/applepay/tokenize"
 
         let msg = document.getElementById("msg")
-        function setMsg(text) { msg.textContent = text || "" }
+        function setMsg(text) {
+          msg.textContent = text || ""
+        }
 
         function handleChargeWithToken(datacapToken) {
           return fetch(chargeUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ datacap_token: datacapToken })
+            body: JSON.stringify({ datacap_token: datacapToken }),
           }).then(async function (res) {
-            let body = {};
-            try { body = await res.json() } catch (e) {}
+            let body = {}
+            try {
+              body = await res.json()
+            } catch (e) {}
             if (!res.ok) throw new Error((body && body.message) || "Charge failed")
             if (body && body.approved) {
               return "Approved: " + (body.auth_code || "")
@@ -134,9 +196,13 @@
         // manual card
         let payBtn = document.getElementById("pay_button")
         let paymentErrors = document.getElementById("payment_errors")
-        function clearErrors() { paymentErrors.textContent = "" }
+        function clearErrors() {
+          paymentErrors.textContent = ""
+        }
         payBtn.addEventListener("click", function () {
-          clearErrors(); setMsg(""); payBtn.disabled = true
+          clearErrors()
+          setMsg("")
+          payBtn.disabled = true
           if (!window.DatacapWebToken) {
             paymentErrors.textContent = "Token library unavailable"
             payBtn.disabled = false
@@ -155,12 +221,15 @@
               return
             }
             setMsg("Processing...")
-            handleChargeWithToken(token).then(function (ok) {
-              setMsg(ok); payBtn.disabled = false
-            }).catch(function (err) {
-              setMsg("Error: " + (err && err.message ? err.message : String(err)))
-              payBtn.disabled = false
-            })
+            handleChargeWithToken(token)
+              .then(function (ok) {
+                setMsg(ok)
+                payBtn.disabled = false
+              })
+              .catch(function (err) {
+                setMsg("Error: " + (err && err.message ? err.message : String(err)))
+                payBtn.disabled = false
+              })
           }
           DatacapWebToken.requestToken(webTokenMid, "payment_form", tokenCallback)
         })
@@ -181,14 +250,16 @@
             manualSection.classList.remove("hidden")
           }
         }
-        ;[methodCredit, methodApple].forEach(function (el) { if (el) el.addEventListener("change", applyMethodUI) })
+        ;[methodCredit, methodApple].forEach(function (el) {
+          if (el) el.addEventListener("change", applyMethodUI)
+        })
 
         // Apple Pay: only show if applicable
         let payAppleFallbackBtn = document.getElementById("pay-apple")
         function initApplePay() {
           try {
-            let hasApplePay = !!(window.ApplePaySession)
-            let hasDatacap = !!(window.DatacapApplePay)
+            let hasApplePay = !!window.ApplePaySession
+            let hasDatacap = !!window.DatacapApplePay
             if (!(hasApplePay && hasDatacap && applePayMid)) {
               methodAppleWrapper.classList.add("hidden")
               appleSection.classList.add("hidden")
@@ -204,8 +275,17 @@
                   return
                 }
                 let token = tokenResponse.Token || tokenResponse.token || tokenResponse.id
-                if (!token) { reject(new Error("No token returned")); return }
-                handleChargeWithToken(token).then(function (ok) { resolve(ok) }).catch(function (err) { reject(err) })
+                if (!token) {
+                  reject(new Error("No token returned"))
+                  return
+                }
+                handleChargeWithToken(token)
+                  .then(function (ok) {
+                    resolve(ok)
+                  })
+                  .catch(function (err) {
+                    reject(err)
+                  })
               })
             }
             DatacapApplePay.init(tokenCallback, applePayMid, storeName, "com.dcap.wallet", (amountCents / 100).toFixed(2))
@@ -227,7 +307,7 @@
             let tRes = await fetch(tokenizeUrl, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ token: { paymentData: { dummy: true } } })
+              body: JSON.stringify({ token: { paymentData: { dummy: true } } }),
             })
             if (!tRes.ok) throw new Error("Tokenize failed")
             let tBody = await tRes.json()
