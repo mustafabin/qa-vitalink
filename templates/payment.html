@@ -17,14 +17,13 @@
         </div>
         <div class="p-5">
           <p class="font-semibold mb-3"><span class="font-bold">Amount:</span> {{ formatAmount .page.AmountCents .page.Currency }}</p>
-
           <div class="flex flex-col gap-3 mb-5">
-            <label class="flex flex-row sm:items-center justify-between gap-3 p-3 border border-slate-200 rounded-lg cursor-pointer bg-white">
-              <div class="flex items-center flex-1 justify-between">
+            <label class="flex w-full flex-row sm:items-center justify-between gap-3 p-3 border border-slate-200 rounded-lg cursor-pointer bg-white">
+              <div class="flex flex-1 items-center justify-between">
                 <input type="radio" name="method" id="method-credit" value="credit" checked class="h-5 w-5 accent-violet-600" />
                 <p class="font-medium whitespace-nowrap">Credit Card</p>
               </div>
-              <div class="flex items-center gap-1 sm:ml-auto">
+              <div class="flex items-center gap-1 w-[60px] sm:ml-auto">
                 <div class="w-8 h-5 rounded bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center">VISA</div>
                 <div class="w-8 h-5 rounded relative flex items-center justify-center">
                   <div class="w-3 h-3 rounded-full bg-red-500 opacity-90 absolute left-1"></div>
