@@ -3,10 +3,12 @@ package server
 import (
 	"errors"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/skip2/go-qrcode"
 	"gorm.io/gorm"
 
 	"vitalink/internal/models"
@@ -70,14 +72,27 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 
 	if err := db.Create(&pp).Error; err != nil {
 		if isUnique(err) {
-			return c.JSON(http.StatusConflict, map[string]any{"error": "payment page exists"})
+			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+				"error": "payment page exists",
+				"details": err.Error(),
+			})
 		}
-		return c.JSON(http.StatusInternalServerError, map[string]any{"error": "create failed"})
+		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
+			"error": "create failed",
+			"details": err.Error(),
+		})
 	}
 
+	scheme := "https"
+	if c.Scheme() != "" { scheme = c.Scheme() }
+	host := c.Request().Host
+	base := scheme + "://" + host
+	paymentURL := base + "/p/" + pp.MerchantID + "/" + pp.PageUID
+	qrURL := base + "/qr/" + pp.MerchantID + "/" + pp.PageUID
+
 	return c.JSON(http.StatusCreated, map[string]any{
-		"html_url":       "/p/" + pp.MerchantID + "/" + pp.PageUID,
-		"charge_api_url": "/api/payments/" + pp.MerchantID + "/" + pp.PageUID + "/charge",
+		"payment_url": paymentURL,
+		"qr_url":      qrURL,
 	})
 }
 
@@ -97,6 +112,29 @@ func handleViewPaymentPage(c echo.Context, db *gorm.DB) error {
 		return c.Render(http.StatusOK, "expired.html", map[string]any{"page": pp})
 	}
 	return c.Render(http.StatusOK, "payment.html", map[string]any{"page": pp})
+}
+
+func handleQRPaymentPage(c echo.Context) error {
+	merchantID := c.Param("merchant_id")
+	pageUID := c.Param("page_uid")
+
+	scheme := "https"
+	if c.Scheme() != "" { scheme = c.Scheme() }
+	host := c.Request().Host
+	url := scheme + "://" + host + "/p/" + merchantID + "/" + pageUID
+
+	sz := 256
+	if q := c.QueryParam("size"); q != "" {
+		if v, err := strconv.Atoi(q); err == nil && v >= 64 && v <= 2048 {
+			sz = v
+		}
+	}
+
+	png, err := qrcode.Encode(url, qrcode.Medium, sz)
+	if err != nil {
+		return c.NoContent(http.StatusInternalServerError)
+	}
+	return c.Blob(http.StatusOK, "image/png", png)
 }
 
 func isUnique(err error) bool {

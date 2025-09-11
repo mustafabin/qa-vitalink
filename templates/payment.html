@@ -4,6 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ .page.Title }}</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css">
     <style>
       body {
         font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
@@ -12,115 +14,228 @@
         background: #f8fafc;
         color: #0f172a;
       }
-      .container {
-        max-width: 720px;
-        margin: 0 auto;
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(2, 6, 23, 0.06);
-        padding: 2rem;
-      }
-      .h {
-        font-weight: 700;
-        margin: 0 0 8px;
-      }
-      .sub {
-        color: #475569;
-        margin: 0 0 16px;
-      }
-      .card {
-        border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        padding: 16px;
-        margin-top: 16px;
-      }
-      .btn {
-        display: inline-block;
-        padding: 0.8rem 1.2rem;
-        border-radius: 10px;
-        background: #111827;
-        color: #fff;
-        text-decoration: none;
-        font-weight: 600;
-      }
-      .note {
-        color: #64748b;
-        font-size: 0.9rem;
-      }
+      .container-table { display: table; height: 100%; width: 100%; }
+      .vertical-center-row { display: table-cell; vertical-align: top; }
+      .credit-card-box { margin-top: 8px; }
+      .panel-title { font-weight: 700; }
+      .text-muted-note { color: #64748b; }
     </style>
+    <script src="https://wallet.dcap.com/v1/client/applepay"></script>
+    <script src="https://token-cert.dcap.com/v1/client"></script>
   </head>
   <body>
-    <div class="container">
-      <h1 class="h">{{ .page.StoreName }}</h1>
-      <h2 class="h">{{ .page.Title }}</h2>
-      <p class="sub">{{ .page.Description }}</p>
-      <div class="card">
-        <p><strong>Amount:</strong> {{ formatAmount .page.AmountCents .page.Currency }}</p>
-        <div id="applepay-container"></div>
-        <button id="pay" class="btn">Pay with Apple Pay</button>
-        <p id="msg" class="note"></p>
+    <div class="container container-table">
+      <div class="row vertical-center-row">
+        <div class="col-xs-12 col-md-6 col-md-offset-3">
+          <h2 class="h" style="margin-top:0;">{{ .page.StoreName }}</h2>
+          <p class="sub">{{ .page.Title }} — {{ .page.Description }}</p>
+
+          <div class="panel panel-default credit-card-box">
+            <div class="panel-heading display-table">
+              <div class="row display-tr">
+                <h3 class="panel-title display-td">Payment Details</h3>
+              </div>
+            </div>
+            <div class="panel-body">
+              <p><strong>Amount:</strong> {{ formatAmount .page.AmountCents .page.Currency }}</p>
+              <form id="payment_form" onsubmit="return false;">
+                <div class="row">
+                  <div class="col-xs-12">
+                    <div class="form-group">
+                      <label for="cardNumber">Card Number</label>
+                      <div class="input-group">
+                        <input type="tel" class="form-control" id="cardNumber" data-token="card_number" placeholder="Valid Card Number" required />
+                        <span class="input-group-addon"><i class="fa fa-credit-card"></i></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-xs-4 col-md-4">
+                    <div class="form-group">
+                      <label>Exp Month</label>
+                      <input type="tel" class="form-control" data-token="exp_month" placeholder="MM" maxlength="2" required />
+                    </div>
+                  </div>
+                  <div class="col-xs-4 col-md-4">
+                    <div class="form-group">
+                      <label>Exp Year</label>
+                      <input type="tel" class="form-control" data-token="exp_year" placeholder="YYYY" maxlength="4" required />
+                    </div>
+                  </div>
+                  <div class="col-xs-4 col-md-4">
+                    <div class="form-group">
+                      <label>CVV</label>
+                      <input type="tel" class="form-control" data-token="cvv" placeholder="CVV" maxlength="4" required />
+                    </div>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-xs-12">
+                    <div class="form-group">
+                      <label>Postal Code</label>
+                      <input type="text" class="form-control" data-token="postal_code" placeholder="12345" />
+                    </div>
+                  </div>
+                </div>
+                <div class="row" style="margin-top:10px;">
+                  <div class="col-xs-12">
+                    <button id="pay_button" type="button" class="btn btn-success btn-lg btn-block">Tokenize & Pay</button>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-xs-12">
+                    <p id="payment_errors" class="text-danger"></p>
+                  </div>
+                </div>
+              </form>
+              <p id="msg" class="text-muted-note"></p>
+            </div>
+          </div>
+
+          <div id="apple-pay-section" class="panel panel-default" style="display:none;">
+            <div class="panel-heading">
+              <h3 class="panel-title">Apple Pay</h3>
+            </div>
+            <div class="panel-body">
+              <p><strong>Amount:</strong> {{ formatAmount .page.AmountCents .page.Currency }}</p>
+              <div id="apple-pay-button"></div>
+              <button id="pay-apple" class="btn btn-primary" style="display:none;">Pay with Apple Pay</button>
+              <p class="text-muted-note" style="margin-top:8px;">* Not seeing anything? Use Safari on iOS 10+ or macOS 10.12+ with an active wallet.</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
+
     <div
       id="page-data"
       data-merchant-id="{{ .page.MerchantID }}"
       data-page-uid="{{ .page.PageUID }}"
-      data-store-name="{{ .page.StoreName }}"></div>
+      data-store-name="{{ .page.StoreName }}"
+      data-amount-cents="{{ .page.AmountCents }}"
+      data-currency="{{ .page.Currency }}"
+      data-apple-pay-mid="{{ .page.ApplePayMid }}"
+      data-webtoken-mid="{{ .page.ApplePayMid }}"></div>
     <script>
       ;(function () {
         var el = document.getElementById("page-data")
         var merchantId = el.dataset.merchantId
         var pageUid = el.dataset.pageUid
-        var storeName = el.dataset.storeName
-        var validateUrl = "/api/applepay/validate"
-        var tokenizeUrl = "/api/applepay/tokenize"
+        var storeName = el.dataset.storeName || "Store"
+        var amountCents = parseInt(el.dataset.amountCents || "0", 10)
+        var currency = el.dataset.currency || "USD"
+        var applePayMid = el.dataset.applePayMid || ""
+        var webTokenMid = el.dataset.webtokenMid || applePayMid || ""
+
         var chargeUrl = "/api/payments/" + merchantId + "/" + pageUid + "/charge"
+        var tokenizeUrl = "/api/applepay/tokenize" // used only for Apple Pay fallback/demo
 
         var msg = document.getElementById("msg")
-        document.getElementById("pay").addEventListener("click", async function () {
-          msg.textContent = ""
-          try {
-            // 1) Merchant validation (in a real impl, use ApplePaySession and pass its validationURL)
-            var validationUrlFromApple = "https://apple-pay-gateway.apple.com/paymentservices/startSession"
-            var res = await fetch(validateUrl, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                validationUrl: validationUrlFromApple,
-                domain: location.hostname,
-                store_name: storeName,
-              }),
-            })
-            if (!res.ok) throw new Error("Validation failed")
-            var merchantSession = await res.json()
+        function setMsg(text) { msg.textContent = text || "" }
 
-            // 2) Tokenize (simulate token from ApplePaySession on the client)
-            res = await fetch(tokenizeUrl, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ token: { paymentData: { dummy: true } } }),
-            })
-            if (!res.ok) throw new Error("Tokenize failed")
-            var tok = await res.json()
-            var datacapToken = tok.datacap_token || tok.token || tok.id || tok.value || "sample-token"
-
-            // 3) Charge (server authoritative amount)
-            res = await fetch(chargeUrl, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ datacap_token: datacapToken }),
-            })
-            var body = await res.json()
+        function handleChargeWithToken(datacapToken) {
+          return fetch(chargeUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ datacap_token: datacapToken })
+          }).then(async function (res) {
+            var body = {};
+            try { body = await res.json() } catch (e) {}
             if (!res.ok) throw new Error((body && body.message) || "Charge failed")
-            if (body.approved) {
-              msg.textContent = "Approved: " + (body.auth_code || "")
-            } else {
-              msg.textContent = "Declined: " + (body.message || "")
+            if (body && body.approved) {
+              return "Approved: " + (body.auth_code || "")
             }
+            throw new Error("Declined: " + ((body && body.message) || ""))
+          })
+        }
+
+        // Manual card via Datacap WebToken
+        var payBtn = document.getElementById("pay_button")
+        var paymentErrors = document.getElementById("payment_errors")
+        function clearErrors() { paymentErrors.textContent = "" }
+        payBtn.addEventListener("click", function () {
+          clearErrors(); setMsg(""); payBtn.disabled = true
+          if (!window.DatacapWebToken) {
+            paymentErrors.textContent = "Token library unavailable"
+            payBtn.disabled = false
+            return
+          }
+          var tokenCallback = function (response) {
+            if (response && response.Error) {
+              paymentErrors.textContent = response.Error
+              payBtn.disabled = false
+              return
+            }
+            var token = response && (response.Token || response.token || response.id)
+            if (!token) {
+              paymentErrors.textContent = "No token returned"
+              payBtn.disabled = false
+              return
+            }
+            setMsg("Processing...")
+            handleChargeWithToken(token).then(function (ok) {
+              setMsg(ok); payBtn.disabled = false
+            }).catch(function (err) {
+              setMsg("Error: " + (err && err.message ? err.message : String(err)))
+              payBtn.disabled = false
+            })
+          }
+          DatacapWebToken.requestToken(webTokenMid, "payment_form", tokenCallback)
+        })
+
+        // Apple Pay section: only show if applicable
+        var appleSection = document.getElementById("apple-pay-section")
+        var payAppleFallbackBtn = document.getElementById("pay-apple")
+        function initApplePay() {
+          try {
+            var hasApplePay = !!(window.ApplePaySession)
+            var hasDatacap = !!(window.DatacapApplePay)
+            if (!(hasApplePay && hasDatacap && applePayMid)) {
+              appleSection.style.display = "none"
+              return
+            }
+            appleSection.style.display = "block"
+            var amount = (amountCents / 100).toFixed(2)
+            var tokenCallback = function (tokenResponse) {
+              return new Promise(function (resolve, reject) {
+                if (!tokenResponse || tokenResponse.Error) {
+                  reject(new Error("Token error: " + (tokenResponse && tokenResponse.Error)))
+                  return
+                }
+                var token = tokenResponse.Token || tokenResponse.token || tokenResponse.id
+                if (!token) { reject(new Error("No token returned")); return }
+                handleChargeWithToken(token).then(function (ok) { resolve(ok) }).catch(function (err) { reject(err) })
+              })
+            }
+            DatacapApplePay.init(tokenCallback, applePayMid, storeName, "com.dcap.wallet", amount)
+            payAppleFallbackBtn.style.display = "none"
           } catch (e) {
-            msg.textContent = "Error: " + (e && e.message ? e.message : String(e))
+            appleSection.style.display = applePayMid ? "block" : "none"
+            payAppleFallbackBtn.style.display = applePayMid ? "inline-block" : "none"
+          }
+        }
+
+        payAppleFallbackBtn.addEventListener("click", async function () {
+          setMsg("")
+          try {
+            var tRes = await fetch(tokenizeUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ token: { paymentData: { dummy: true } } })
+            })
+            if (!tRes.ok) throw new Error("Tokenize failed")
+            var tBody = await tRes.json()
+            var datacapToken = tBody.datacap_token || tBody.token || tBody.id || tBody.value || "sample-token"
+            setMsg("Processing...")
+            var ok = await handleChargeWithToken(datacapToken)
+            setMsg(ok)
+          } catch (e) {
+            setMsg("Error: " + (e && e.message ? e.message : String(e)))
           }
         })
+
+        initApplePay()
       })()
     </script>
   </body>
