@@ -22,7 +22,7 @@
             <label class="flex flex-row sm:items-center justify-between gap-3 p-3 border border-slate-200 rounded-lg cursor-pointer bg-white">
               <div class="flex items-center flex-1 justify-between">
                 <input type="radio" name="method" id="method-credit" value="credit" checked class="h-5 w-5 accent-violet-600" />
-                <p class="font-medium">Credit Card</p>
+                <p class="font-medium whitespace-nowrap">Credit Card</p>
               </div>
               <div class="flex items-center gap-1 sm:ml-auto">
                 <div class="w-8 h-5 rounded bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center">VISA</div>
@@ -48,7 +48,7 @@
           </div>
 
           <div id="manual-section">
-            <form id="payment_form" onsubmit="return false;" class="space-y-4">
+            <form id="payment_form" onsubmit="return false;" autocomplete="on" class="space-y-4">
               <div>
                 <label for="cardNumber" class="block text-sm font-medium mb-1">Card number</label>
                 <input id="cardNumber" type="tel" inputmode="numeric" pattern="[0-9]*" data-token="card_number" placeholder="**** **** **** ****" autocomplete="cc-number" required class="h-12 w-full rounded-xl border border-slate-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
