@@ -229,7 +229,7 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	api_secert := "y28WYo1-JyHuybes4rHtSMGYRKsG9fwxASlKMUn1p0N7qF9T8I_qVkUz8RSp86TvbRid3bIEZTSKSmHzRgKMRA" //! temporary
 	auth := base64.StdEncoding.EncodeToString([]byte(page.MerchantID+":"+api_secert))
 	reqHttp.Header.Set("Content-Type", "application/json")
-	reqHttp.Header.Set("Authorization", auth)
+	reqHttp.Header.Set("Authorization", "Basic "+ auth)
 
 	resp, err := http.DefaultClient.Do(reqHttp)
 	if err != nil {
