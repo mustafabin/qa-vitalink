@@ -177,7 +177,7 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "datacap_token is required"})
 	}
 
-	endpoint := "https://pay.dcap.com/v2/credit/sale"
+	endpoint := "https://pay.dcap.com/v1/credit/sale" // ! i had to switch to v1 since it doesnt need the private key
 
 	if page.AmountCents < 1 {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "amount must be at least 0.01"})
@@ -211,8 +211,8 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	reqHttp.Header.Set("Content-Type", "application/json")
 	reqHttp.Header.Set("Accept", "application/json")
 	reqHttp.Header.Set("User-Agent", "vitalink")
-	reqHttp.Header.Set("Authorization", page.PublicToken)
-	log.Println("request auth", page.PublicToken)
+	reqHttp.Header.Set("Authorization", page.MerchantID)
+	log.Println("request auth", page.MerchantID)
 
 	resp, err := http.DefaultClient.Do(reqHttp)
 	if err != nil {
