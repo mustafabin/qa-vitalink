@@ -2,7 +2,6 @@ package server
 
 import (
 	"errors"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -10,6 +9,7 @@ import (
 
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -152,6 +152,24 @@ func isUnique(err error) bool {
 	return strings.Contains(s, "duplicate key value") || strings.Contains(strings.ToLower(s), "unique")
 }
 
+func markPaymentFulfilled(ctx context.Context, db *gorm.DB, page *models.PaymentPage, dcResp map[string]any) error {
+	if page == nil { return errors.New("nil payment page") }
+	approved := false
+	if v, ok := dcResp["Status"].(string); ok && strings.EqualFold(v, "Approved") { approved = true }
+	if v, ok := dcResp["CmdStatus"].(string); ok && strings.EqualFold(v, "Approved") { approved = true }
+	if !approved {
+		return errors.New("transaction not approved")
+	}
+	if page.Status == "paid" {
+		return nil
+	}
+	if err := db.WithContext(ctx).Model(page).Update("status", "paid").Error; err != nil {
+		return err
+	}
+	page.Status = "paid"
+	return nil
+}
+
 func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	merchantID := c.Param("merchant_id")
 	pageUID := c.Param("page_uid")
@@ -177,7 +195,7 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "datacap_token is required"})
 	}
 
-	endpoint := "https://pay.dcap.com/v1/credit/sale" // ! i had to switch to v1 since it doesnt need the private key
+	endpoint := "https://pay.dcap.com/v2/credit/sale"
 
 	if page.AmountCents < 1 {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "amount must be at least 0.01"})
@@ -208,11 +226,10 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]any{"error": "request build error"})
 	}
+	api_secert := "y28WYo1-JyHuybes4rHtSMGYRKsG9fwxASlKMUn1p0N7qF9T8I_qVkUz8RSp86TvbRid3bIEZTSKSmHzRgKMRA" //! temporary
+	auth := base64.StdEncoding.EncodeToString([]byte(page.MerchantID+":"+api_secert))
 	reqHttp.Header.Set("Content-Type", "application/json")
-	reqHttp.Header.Set("Accept", "application/json")
-	reqHttp.Header.Set("User-Agent", "vitalink")
-	reqHttp.Header.Set("Authorization", page.MerchantID)
-	log.Println("request auth", page.MerchantID)
+	reqHttp.Header.Set("Authorization", auth)
 
 	resp, err := http.DefaultClient.Do(reqHttp)
 	if err != nil {
@@ -221,7 +238,6 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	defer resp.Body.Close()
 	respBytes, _ := io.ReadAll(resp.Body)
 
-	log.Println("respBytes", string(respBytes))
 	var dcResp map[string]any
 	_ = json.Unmarshal(respBytes, &dcResp)
 
@@ -234,6 +250,7 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	if resp.StatusCode >= 400 { approved = false }
 
 	if approved {
+		_ = markPaymentFulfilled(ctx, db, &page, dcResp)
 		return c.JSON(http.StatusOK, map[string]any{
 			"approved":  true,
 			"message":   message,
@@ -247,3 +264,4 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 		"message":  message,
 	})
 }
+
