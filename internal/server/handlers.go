@@ -7,6 +7,12 @@ import (
 	"strings"
 	"time"
 
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+
 	"github.com/labstack/echo/v4"
 	"github.com/skip2/go-qrcode"
 	"gorm.io/gorm"
@@ -34,6 +40,7 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 		TaxAmount             string `json:"tax_amount"`
 		Items                 string `json:"items"`
 		PaymentTypesAllowed   string `json:"payment_types_allowed"`
+		PublicToken           string `json:"public_token"`
 		ApplePayMid           string `json:"apple_pay_mid"`
 		GooglePayMid          string `json:"google_pay_mid"`
 	}
@@ -66,6 +73,7 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 		TaxAmount:             req.TaxAmount,
 		Items:                 req.Items,
 		PaymentTypesAllowed:   req.PaymentTypesAllowed,
+		PublicToken:           req.PublicToken,
 		ApplePayMid:           req.ApplePayMid,
 		GooglePayMid:          req.GooglePayMid,
 	}
@@ -141,4 +149,96 @@ func isUnique(err error) bool {
 	if err == nil { return false }
 	s := err.Error()
 	return strings.Contains(s, "duplicate key value") || strings.Contains(strings.ToLower(s), "unique")
+}
+
+func handleChargePayment(c echo.Context, db *gorm.DB) error {
+	merchantID := c.Param("merchant_id")
+	pageUID := c.Param("page_uid")
+
+	var page models.PaymentPage
+	if err := db.First(&page, "merchant_id = ? AND page_uid = ?", merchantID, pageUID).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.JSON(http.StatusNotFound, map[string]any{"error": "payment page not found"})
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]any{"error": "db error"})
+	}
+	if page.Status != "open" || page.IsExpired(time.Now()) {
+		return c.JSON(http.StatusBadRequest, map[string]any{"error": "payment page closed or expired"})
+	}
+
+	var req struct {
+		DatacapToken string `json:"datacap_token"`
+	}
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]any{"error": "invalid request"})
+	}
+	if strings.TrimSpace(req.DatacapToken) == "" {
+		return c.JSON(http.StatusBadRequest, map[string]any{"error": "datacap_token is required"})
+	}
+
+	endpoint := "https://pay.dcap.com/v2/credit/sale"
+
+	if page.AmountCents < 1 {
+		return c.JSON(http.StatusBadRequest, map[string]any{"error": "amount must be at least 0.01"})
+	}
+	amount := fmt.Sprintf("%.2f", float64(page.AmountCents)/100)
+
+	payload := map[string]string{
+		"Token":        req.DatacapToken,
+		"Token1":       req.DatacapToken,
+		"Amount":       amount,
+		"CardHolderID": "Allow_V2",
+	}
+	if page.InvoiceNo != "" { payload["InvoiceNo"] = page.InvoiceNo }
+	if page.PaymentFeeAmount != "" { payload["PaymentFee"] = page.PaymentFeeAmount }
+	if page.PaymentFeeDescription != "" { payload["PaymentFeeDescription"] = page.PaymentFeeDescription }
+	if page.SurchargeAmount != "" { payload["SurchargeWithLookup"] = page.SurchargeAmount }
+	if page.TaxAmount != "" { payload["Tax"] = page.TaxAmount }
+
+	bodyBytes, err := json.Marshal(payload)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]any{"error": "marshal error"})
+	}
+
+	ctx, cancel := context.WithTimeout(c.Request().Context(), 15*time.Second)
+	defer cancel()
+
+	reqHttp, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]any{"error": "request build error"})
+	}
+	reqHttp.Header.Set("Content-Type", "application/json")
+	reqHttp.Header.Set("Authorization", page.MerchantID)
+
+	resp, err := http.DefaultClient.Do(reqHttp)
+	if err != nil {
+		return c.JSON(http.StatusBadGateway, map[string]any{"error": "datacap request failed", "details": err.Error()})
+	}
+	defer resp.Body.Close()
+	respBytes, _ := io.ReadAll(resp.Body)
+
+	var dcResp map[string]any
+	_ = json.Unmarshal(respBytes, &dcResp)
+
+	approved := false
+	message := ""
+	if v, ok := dcResp["Status"].(string); ok && strings.EqualFold(v, "Approved") { approved = true }
+	if v, ok := dcResp["Message"].(string); ok && message == "" { message = v }
+	if message == "" { message = strings.TrimSpace(string(respBytes)) }
+
+	if resp.StatusCode >= 400 { approved = false }
+
+	if approved {
+		return c.JSON(http.StatusOK, map[string]any{
+			"approved":  true,
+			"message":   message,
+		})
+	}
+
+	status := http.StatusBadRequest
+	if resp.StatusCode >= 400 { status = resp.StatusCode }
+	return c.JSON(status, map[string]any{
+		"approved": false,
+		"message":  message,
+	})
 }

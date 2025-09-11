@@ -25,6 +25,7 @@ type PaymentPage struct {
 	TaxAmount             string `json:"tax_amount"`
 	Items                 string `gorm:"type:text" json:"items" default:"[]"`
 
+	PublicToken string `json:"public_token"`
 	PaymentTypesAllowed string `gorm:"type:text" json:"payment_types_allowed" default:"CREDIT_DEBIT"`
 	ApplePayMid string `json:"apple_pay_mid"`
 	GooglePayMid string `json:"google_pay_mid"`

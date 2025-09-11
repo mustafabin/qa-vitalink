@@ -125,14 +125,6 @@
                 </button>
               </div>
               <p id="payment_errors" class="text-sm text-red-600"></p>
-              <div id="token_result" class="hidden mt-3">
-                <p class="text-sm text-slate-600">Token:</p>
-                <div id="token_value" class="mt-1 font-mono text-sm break-all bg-slate-50 border border-slate-200 rounded p-2"></div>
-                <details id="resp_details" class="mt-2">
-                  <summary class="text-sm text-slate-600 cursor-pointer">Response details</summary>
-                  <pre id="token_json" class="mt-2 text-xs bg-slate-50 border border-slate-200 rounded p-2 overflow-auto"></pre>
-                </details>
-              </div>
             </form>
             <p id="msg" class="text-sm text-slate-500 mt-1"></p>
           </div>
@@ -155,7 +147,7 @@
       data-store-name="{{ .page.StoreName }}"
       data-amount-cents="{{ .page.AmountCents }}"
       data-currency="{{ .page.Currency }}"
-      data-webtoken-mid="45287d19cb294f34b1d9a77de5744179"></div>
+      data-webtoken-mid="{{ .page.PublicToken }}"></div>
 
     <script>
       ;(function () {
@@ -166,7 +158,7 @@
         let amountCents = parseInt(el.dataset.amountCents || "0", 10)
         let currency = el.dataset.currency || "USD"
         let applePayMid = el.dataset.applePayMid || ""
-        let webTokenMid = "45287d19cb294f34b1d9a77de5744179"
+        let webTokenMid = el.dataset.webTokenMid || ""
 
         let chargeUrl = "/api/payments/" + merchantId + "/" + pageUid + "/charge"
         let tokenizeUrl = "/api/applepay/tokenize"
@@ -188,7 +180,7 @@
             } catch (e) {}
             if (!res.ok) throw new Error((body && body.message) || "Charge failed")
             if (body && body.approved) {
-              return "Approved: " + (body.auth_code || "")
+              return "Approved: " + (body.message || "")
             }
             throw new Error("Declined: " + ((body && body.message) || ""))
           })
@@ -233,15 +225,13 @@
               const brand = response.Brand || response.brand || response.CardBrand || undefined
               console.log("[Datacap] Tokenization response:", response)
             } catch (_) {}
-
-            let tokenResult = document.getElementById("token_result")
-            tokenResult.classList.remove("hidden")
-            let tokenValue = document.getElementById("token_value")
-            tokenValue.textContent = token
-            let tokenJson = document.getElementById("token_json")
-            tokenJson.textContent = JSON.stringify(response, null, 2)
-            let respDetails = document.getElementById("resp_details")
-            respDetails.classList.remove("hidden")
+            handleChargeWithToken(token)
+              .then(function (ok) {
+                setMsg(ok)
+              })
+              .catch(function (err) {
+                setMsg("Error: " + (err && err.message ? err.message : String(err)))
+              })
           }
           console.log("requesting token")
           DatacapWebToken.requestToken(webTokenMid, "payment_form", tokenCallback)
@@ -267,12 +257,15 @@
           if (el) el.addEventListener("change", applyMethodUI)
         })
 
-        // Apple Pay: only show if applicable
-        let payAppleFallbackBtn = document.getElementById("pay-apple")
+        // only shows if applicable
+        let payAppleBtn = document.getElementById("pay-apple")
         function initApplePay() {
           try {
             let hasApplePay = !!window.ApplePaySession
             let hasDatacap = !!window.DatacapApplePay
+            console.log("hasApplePay", hasApplePay)
+            console.log("hasDatacap", hasDatacap)
+            console.log("applePayMid", applePayMid)
             if (!(hasApplePay && hasDatacap && applePayMid)) {
               methodAppleWrapper.classList.add("hidden")
               appleSection.classList.add("hidden")
@@ -302,11 +295,11 @@
               })
             }
             DatacapApplePay.init(tokenCallback, applePayMid, storeName, "com.dcap.wallet", (amountCents / 100).toFixed(2))
-            payAppleFallbackBtn.classList.add("hidden")
+            payAppleBtn.classList.add("hidden")
           } catch (e) {
             if (applePayMid) {
               methodAppleWrapper.classList.remove("hidden")
-              payAppleFallbackBtn.classList.remove("hidden")
+              payAppleBtn.classList.remove("hidden")
             } else {
               methodAppleWrapper.classList.add("hidden")
             }
@@ -314,7 +307,7 @@
           applyMethodUI()
         }
 
-        payAppleFallbackBtn.addEventListener("click", async function () {
+        payAppleBtn.addEventListener("click", async function () {
           setMsg("")
           try {
             let tRes = await fetch(tokenizeUrl, {
