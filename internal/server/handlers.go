@@ -210,7 +210,11 @@ func markPaymentFulfilled(ctx context.Context, db *gorm.DB, page *models.Payment
 	if page.Status == "paid" {
 		return nil
 	}
-	if err := db.WithContext(ctx).Model(page).Update("status", "paid").Error; err != nil {
+	if err := db.WithContext(ctx).Model(page).Updates(map[string]any{
+		"status": "paid",
+		"last4":  dcResp["Last4"],
+		"brand":  dcResp["Brand"],
+	}).Error; err != nil {
 		return err
 	}
 	page.Status = "paid"
@@ -234,6 +238,8 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 
 	var req struct {
 		DatacapToken string `json:"datacap_token"`
+		Last4 string `json:"last4"`
+		Brand string `json:"brand"`
 	}
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "invalid request"})
@@ -253,7 +259,9 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 		"Token":        req.DatacapToken,
 		"Token1":       req.DatacapToken,
 		"Amount":       amount,
+		"PartialAuth": "Disallow",
 		"CardHolderID": "Allow_V2",
+		"InvoiceNo":    page.InvoiceNo,
 	}
 	if page.InvoiceNo != "" { payload["InvoiceNo"] = page.InvoiceNo }
 	if page.PaymentFeeAmount != "" { payload["PaymentFee"] = page.PaymentFeeAmount }
@@ -287,6 +295,11 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 
 	var dcResp map[string]any
 	_ = json.Unmarshal(respBytes, &dcResp)
+
+	// Fallback to client-provided metadata if gateway response omits these
+	if dcResp == nil { dcResp = map[string]any{} }
+	if _, ok := dcResp["Last4"]; !ok && strings.TrimSpace(req.Last4) != "" { dcResp["Last4"] = req.Last4 }
+	if _, ok := dcResp["Brand"]; !ok && strings.TrimSpace(req.Brand) != "" { dcResp["Brand"] = req.Brand }
 
 	approved := false
 	message := ""

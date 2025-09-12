@@ -30,6 +30,9 @@ type PaymentPage struct {
 	ApplePayMid string `json:"apple_pay_mid"`
 	GooglePayMid string `json:"google_pay_mid"`
 
+	Last4 string `json:"last4"`
+	Brand string `json:"brand"`
+
 	CreatedAt    time.Time      `json:"created_at"`
 	UpdatedAt    time.Time      `json:"updated_at"`
 }

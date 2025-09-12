@@ -203,11 +203,11 @@
           }
         }
 
-        function handleChargeWithToken(datacapToken) {
+        function handleChargeWithToken(datacapToken, last4, brand) {
           return fetch(chargeUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ datacap_token: datacapToken }),
+            body: JSON.stringify({ datacap_token: datacapToken, last4: last4, brand: brand }),
           }).then(async function (res) {
             let body = {}
             try {
@@ -255,12 +255,14 @@
               return
             }
 
+            let last4;
+            let brand;
             try {
-              const last4 = response.Last4 || response.last4 || response.cardLast4 || undefined
-              const brand = response.Brand || response.brand || response.CardBrand || undefined
+              last4 = response.Last4 || response.last4 || response.cardLast4 || undefined
+              brand = response.Brand || response.brand || response.CardBrand || undefined
               console.log("[Datacap] Tokenization response:", response)
             } catch (_) {}
-            handleChargeWithToken(token)
+            handleChargeWithToken(token, last4, brand)
               .then(function (ok) {
                 setMsg(ok)
               })
