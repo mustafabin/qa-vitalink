@@ -4,29 +4,29 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Not Found</title>
-    <style>
-      body {
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
-        margin: 0;
-        padding: 2rem;
-        background: #0f172a;
-        color: #e2e8f0;
-      }
-      .center {
-        max-width: 640px;
-        margin: 10vh auto;
-        text-align: center;
-      }
-      a {
-        color: #93c5fd;
-      }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
   </head>
-  <body>
-    <div class="center">
-      <h1>Page not found</h1>
-      <p>This payment link does not exist.</p>
-      <p><a href="/">Go home</a></p>
+  <body class="bg-slate-50 text-slate-900 antialiased">
+    <div class="max-w-lg mx-auto p-4">
+      <div class="bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
+        <div class="px-5 py-8 text-center">
+          <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 text-rose-700">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-6 w-6">
+              <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm6-3a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 8.25 9Zm6 0a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5a.75.75 0 0 1 .75-.75Z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <h1 class="text-2xl font-semibold">Page not found</h1>
+          <p class="text-slate-600 mt-2">This payment link does not exist.</p>
+          <div class="mt-6">
+            <a href="/" class="inline-flex items-center gap-2 text-violet-700 hover:text-violet-800 font-medium">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
+              Go home
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
   </body>
 </html>

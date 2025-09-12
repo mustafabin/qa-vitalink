@@ -4,25 +4,60 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Already paid</title>
-    <style>
-      body {
-        font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
-        margin: 0;
-        padding: 2rem;
-        background: #ecfeff;
-        color: #0f172a;
-      }
-      .center {
-        max-width: 640px;
-        margin: 10vh auto;
-        text-align: center;
-      }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
   </head>
-  <body>
-    <div class="center">
-      <h1>Payment already completed</h1>
-      <p>This payment page has already been paid.</p>
+  <body class="bg-slate-50 text-slate-900 antialiased">
+    <div class="max-w-md mx-auto p-4">
+      <div class="bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
+        <div class="px-6 py-6">
+          <div class="text-center">
+            <div class="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
+                <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-2.59a.75.75 0 1 0-1.22-.86l-3.63 5.15-1.96-1.96a.75.75 0 1 0-1.06 1.06l2.5 2.5c.32.32.84.28 1.11-.09l4.22-5.77Z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <h1 class="text-lg font-semibold">{{ .page.StoreName }}</h1>
+            <p id="receipt-date" class="text-xs text-slate-500 mt-1"></p>
+          </div>
+
+          <div class="mt-6 rounded-xl bg-slate-50 p-4 border border-slate-200">
+            <div class="flex items-center justify-between">
+              <span class="text-sm text-slate-600">Amount paid</span>
+              <span class="font-mono text-xl font-semibold">{{ formatAmount .page.AmountCents .page.Currency }}</span>
+            </div>
+            {{ if .page.InvoiceNo }}
+            <div class="mt-2 text-[11px] text-slate-500">Invoice #: {{ .page.InvoiceNo }}</div>
+            {{ end }}
+            <div class="mt-1 text-[11px] text-slate-500">Page ID: {{ .page.PageUID }}</div>
+          </div>
+
+          <div class="mt-6 pt-6 border-t border-dashed border-slate-300 text-center">
+            <p class="text-sm font-medium text-emerald-700 inline-flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4">
+                <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12Zm13.36-2.59a.75.75 0 1 0-1.22-.86l-3.63 5.15-1.96-1.96a.75.75 0 1 0-1.06 1.06l2.5 2.5c.32.32.84.28 1.11-.09l4.22-5.77Z" clip-rule="evenodd" />
+              </svg>
+              Payment completed
+            </p>
+            <div class="mt-4">
+              <a href="/" class="inline-flex items-center gap-2 text-violet-700 hover:text-violet-800 font-medium">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-5 w-5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                </svg>
+                Go home
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <script>
+      (function () {
+        try {
+          var el = document.getElementById('receipt-date')
+          if (el) { el.textContent = new Date().toLocaleString() }
+        } catch (e) {}
+      })()
+    </script>
   </body>
 </html>

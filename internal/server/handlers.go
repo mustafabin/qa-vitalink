@@ -14,17 +14,49 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/skip2/go-qrcode"
 	"gorm.io/gorm"
 
 	"vitalink/internal/models"
 )
+func grabConfig(token string) (string, error) {
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", "https://api.vitabyte.info/api/config", nil) // todo change this to the prod url
+	if err != nil {
+		return "", fmt.Errorf("error creating request: %v", err)
+	}
+
+	req.Header.Add("Authorization", "Bearer "+token)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("error making request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	var response struct {
+		MerchantID string `json:"merchant_id"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return "", fmt.Errorf("error decoding response: %v", err)
+	}
+
+	return response.MerchantID, nil
+}
+
+
 
 func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 	var req struct {
-		MerchantID  string     `json:"merchant_id" validate:"required"`
-		PageUID     string     `json:"page_uid" validate:"required"`
+		MerchantID  string     `json:"merchant_id"`
+		PageUID     string     `json:"page_uid"`
 		AmountCents int64      `json:"amount_cents" validate:"required"`
 		Currency    string     `json:"currency"`
 		Title       string     `json:"title"`
@@ -48,8 +80,19 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": err.Error()})
 	}
-	if req.MerchantID == "" || req.PageUID == "" || req.AmountCents == 0 {
-		return c.JSON(http.StatusBadRequest, map[string]any{"error": "merchant_id, page_uid, amount_cents are required"})
+	if req.AmountCents == 0 {
+		return c.JSON(http.StatusBadRequest, map[string]any{"error": "amount_cents is required"})
+	}
+	if req.MerchantID == "" {
+		api_token := c.Request().Header.Get("Authorization")
+		merchantID, err := grabConfig(api_token)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]any{"error": "No merchant ID found and grabbing config failed", "details":err.Error()})
+		}
+		req.MerchantID = merchantID
+	}
+	if req.PageUID == "" {
+		req.PageUID = fmt.Sprintf("%x", uuid.New().String()[:8])
 	}
 
 	if req.Currency == "" { req.Currency = "USD" }
@@ -115,6 +158,10 @@ func handleViewPaymentPage(c echo.Context, db *gorm.DB) error {
 		return c.Render(http.StatusNotFound, "not_found.html", map[string]any{})
 	} else if err != nil {
 		return c.String(http.StatusInternalServerError, "error")
+	}
+
+	if pp.Status == "paid" {
+		return c.Render(http.StatusOK, "paid.html", map[string]any{"page": pp})
 	}
 
 	if pp.Status != "open" || pp.IsExpired(time.Now()) {
