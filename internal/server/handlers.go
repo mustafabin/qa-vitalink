@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -76,6 +77,8 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 		PublicToken           string `json:"public_token"`
 		ApplePayMid           string `json:"apple_pay_mid"`
 		GooglePayMid          string `json:"google_pay_mid"`
+		FeatureGraphic        string `json:"feature_graphic"`
+		Logo                  string `json:"logo"`
 	}
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": err.Error()})
@@ -85,6 +88,7 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 	}
 	if req.MerchantID == "" {
 		api_token := c.Request().Header.Get("Authorization")
+		log.Println("api_token", api_token)
 		merchantID, err := grabConfig(api_token)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]any{"error": "No merchant ID found and grabbing config failed", "details":err.Error()})
@@ -120,6 +124,8 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 		PublicToken:           req.PublicToken,
 		ApplePayMid:           req.ApplePayMid,
 		GooglePayMid:          req.GooglePayMid,
+		FeatureGraphic:        req.FeatureGraphic,
+		Logo:                  req.Logo,
 	}
 
 	if err := db.Create(&pp).Error; err != nil {
