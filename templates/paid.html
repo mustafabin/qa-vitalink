@@ -17,7 +17,7 @@
               </svg>
             </div>
             <h1 class="text-lg font-semibold">{{ .page.StoreName }}</h1>
-            <p id="receipt-date" class="text-xs text-slate-500 mt-1"></p>
+            <p id="receipt-date" class="text-xs text-slate-500 mt-1">{{ .page.CreatedAt.Format "Jan 2, 2006 3:04 PM" }}</p>
           </div>
 
           <div class="mt-6 rounded-xl bg-slate-50 p-4 border border-slate-200">
@@ -43,13 +43,6 @@
       </div>
     </div>
 
-    <script>
-      (function () {
-        try {
-          var el = document.getElementById('receipt-date')
-          if (el) { el.textContent = new Date().toLocaleString() }
-        } catch (e) {}
-      })()
-    </script>
+
   </body>
 </html>
