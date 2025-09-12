@@ -89,7 +89,7 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 		PaymentFeeDescription string `json:"payment_fee_description"`
 		SurchargeAmount       string `json:"surcharge_amount"`
 		TaxAmount             string `json:"tax_amount"`
-		Items                 string `json:"items"`
+		Items                 json.RawMessage `json:"items"`
 		PaymentTypesAllowed   string `json:"payment_types_allowed"`
 		PublicToken           string `json:"public_token"`
 		ApplePayMid           string `json:"apple_pay_mid"`
@@ -123,6 +123,31 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 
 	if req.Currency == "" { req.Currency = "USD" }
 
+	// Validate and normalize items to a JSON string
+	itemsJSON := "[]"
+	type incomingItem struct {
+		Title       string  `json:"title"`
+		Description string  `json:"description"`
+		Price       float64 `json:"price"`
+	}
+	if len(req.Items) > 0 {
+		var arr []incomingItem
+		if err := json.Unmarshal(req.Items, &arr); err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]any{"error": "items must be a JSON array of {title, description, price}"})
+		}
+		for i, it := range arr {
+			if strings.TrimSpace(it.Title) == "" || strings.TrimSpace(it.Description) == "" {
+				return c.JSON(http.StatusBadRequest, map[string]any{"error": fmt.Sprintf("items[%d] missing title or description", i)})
+			}
+			// price can be zero but not negative
+			if it.Price < 0 {
+				return c.JSON(http.StatusBadRequest, map[string]any{"error": fmt.Sprintf("items[%d] price must be >= 0", i)})
+			}
+		}
+		b, _ := json.Marshal(arr)
+		itemsJSON = string(b)
+	}
+
 	pp := models.PaymentPage{
 		MerchantID:  req.MerchantID,
 		PageUID:     req.PageUID,
@@ -141,7 +166,7 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 		PaymentFeeDescription: req.PaymentFeeDescription,
 		SurchargeAmount:       req.SurchargeAmount,
 		TaxAmount:             req.TaxAmount,
-		Items:                 req.Items,
+		Items:                 itemsJSON,
 		PaymentTypesAllowed:   req.PaymentTypesAllowed,
 		PublicToken:           req.PublicToken,
 		ApplePayMid:           req.ApplePayMid,

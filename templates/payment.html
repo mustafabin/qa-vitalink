@@ -44,6 +44,12 @@
             <div class="mt-2 text-[11px] text-slate-500">
               Page ID: {{ .page.PageUID }}
             </div>
+            {{ if .page.Items }}
+            <div class="mt-3">
+              <h4 class="text-sm font-semibold mb-1">Items</h4>
+              <div id="items_list" class="text-sm text-slate-700 space-y-1"></div>
+            </div>
+            {{ end }}
           </div>
 
           <div class="mt-6 pt-6 border-t border-dashed border-slate-300">
@@ -153,8 +159,14 @@
                 <button
                   id="pay_button"
                   type="button"
-                  class="w-full h-12 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-semibold">
-                  Pay
+                  class="w-full h-12 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-semibold inline-flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                  aria-busy="false"
+                  aria-live="polite">
+                  <svg id="pay_btn_spinner" class="hidden h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                  </svg>
+                  <span id="pay_btn_text">Pay</span>
                 </button>
               </div>
               <p id="payment_errors" class="text-sm font-semibold text-red-700" role="alert" aria-live="polite"></p>
@@ -186,7 +198,8 @@
       data-amount-cents="{{ .page.AmountCents }}"
       data-currency="{{ .page.Currency }}"
       data-webtoken-mid="{{ .page.PublicToken }}"
-      data-created-at-utc="{{ .page.CreatedAt.Format "2006-01-02T15:04:05Z07:00" }}"></div>
+      data-created-at-utc="{{ .page.CreatedAt.Format "2006-01-02T15:04:05Z07:00" }}"
+      data-items-json='{{ .page.Items }}'></div>
 
     <script>
       ;(function () {
@@ -211,6 +224,28 @@
             let d = new Date(createdAtUtc)
             if (!isNaN(d.getTime())) {
               dateEl.textContent = d.toLocaleString()
+            }
+          }
+        } catch (_) {}
+
+        try {
+          let itemsRoot = document.getElementById("items_list")
+          let itemsJSON = el.dataset.itemsJson
+          if (itemsRoot && itemsJSON) {
+            let arr = JSON.parse(itemsJSON)
+            if (Array.isArray(arr)) {
+              itemsRoot.innerHTML = arr.map(function (it) {
+                let title = (it && it.title) || ""
+                let desc = (it && it.description) || ""
+                let price = (it && it.price) || 0
+                return `<div class="flex items-center justify-between">
+                  <div>
+                    <div class="font-medium">${title}</div>
+                    <div class="text-[12px] text-slate-500">${desc}</div>
+                  </div>
+                  <div class="font-mono text-sm">${price}</div>
+                </div>`
+              }).join("")
             }
           }
         } catch (_) {}
@@ -250,21 +285,32 @@
 
         // manual card
         let payBtn = document.getElementById("pay_button")
+        let payBtnSpinner = document.getElementById("pay_btn_spinner")
+        let payBtnText = document.getElementById("pay_btn_text")
         let paymentErrors = document.getElementById("payment_errors")
         function clearErrors() {
           paymentErrors.textContent = ""
         }
+        function setPayLoading(isLoading) {
+          try {
+            if (!payBtn) return
+            payBtn.disabled = !!isLoading
+            payBtn.setAttribute("aria-busy", isLoading ? "true" : "false")
+            if (payBtnSpinner) payBtnSpinner.classList.toggle("hidden", !isLoading)
+            if (payBtnText) payBtnText.textContent = isLoading ? "Processing..." : "Pay"
+          } catch (_) {}
+        }
         payBtn.addEventListener("click", function () {
           clearErrors()
           setMsg("")
-          payBtn.disabled = true
+          setPayLoading(true)
           if (!window.DatacapWebToken) {
             paymentErrors.textContent = "Token library unavailable"
-            payBtn.disabled = false
+            setPayLoading(false)
             return
           }
           const tokenCallback = function (response) {
-            payBtn.disabled = false
+            setPayLoading(false)
             setMsg("")
 
             if (!response) {
@@ -295,6 +341,9 @@
               })
               .catch(function (err) {
                 setMsg("Error: " + (err && err.message ? err.message : String(err)))
+              })
+              .finally(function () {
+                setPayLoading(false)
               })
           }
           console.log("requesting token")
