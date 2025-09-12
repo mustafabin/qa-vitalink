@@ -142,7 +142,7 @@
                   Pay
                 </button>
               </div>
-              <p id="payment_errors" class="text-sm text-red-600"></p>
+              <p id="payment_errors" class="text-sm font-semibold text-red-700" role="alert" aria-live="polite"></p>
             </form>
             <p id="msg" class="text-sm text-slate-500 mt-1"></p>
           </div>
@@ -194,6 +194,16 @@
         let msg = document.getElementById("msg")
         function setMsg(text) {
           msg.textContent = text || ""
+          if (text && /^Error:/i.test(text)) {
+            msg.classList.remove("text-slate-500")
+            msg.classList.add("font-semibold", "text-red-700")
+          } else {
+            msg.classList.remove("font-semibold", "text-red-700")
+            msg.classList.add("text-slate-500")
+          }
+          if (text && typeof text === "string" && /^Approved:/i.test(text)) {
+            try { window.location.reload() } catch (_) {}
+          }
         }
 
         function handleChargeWithToken(datacapToken) {
