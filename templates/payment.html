@@ -23,7 +23,7 @@
         <div class="px-6 py-6">
           {{ if .page.Logo }}
           <div class="flex justify-center mb-4">
-            <img src="{{ .page.Logo }}" alt="Logo" class="h-10 w-auto" />
+            <img src="{{ .page.Logo }}" alt="Logo" class="h-16 w-auto" />
           </div>
           {{ end }}
           <div class="text-center">
@@ -32,7 +32,6 @@
                 <path fill-rule="evenodd" d="M6.75 3A2.25 2.25 0 0 0 4.5 5.25v13.5A2.25 2.25 0 0 0 6.75 21h10.5A2.25 2.25 0 0 0 19.5 18.75V5.25A2.25 2.25 0 0 0 17.25 3H6.75Zm.75 3a.75.75 0 0 0 0 1.5h9a.75.75 0 0 0 0-1.5h-9Zm-.75 4.5c0-.414.336-.75.75-.75h9a.75.75 0 0 1 0 1.5h-9a.75.75 0 0 1-.75-.75Zm.75 3.75a.75.75 0 0 0 0 1.5h5.25a.75.75 0 0 0 0-1.5H7.5Z" clip-rule="evenodd" />
               </svg>
             </div>
-            <h1 class="text-lg font-semibold">{{ .page.StoreName }}</h1>
             <p id="receipt-date" class="text-xs text-slate-500 mt-1"></p>
           </div>
 
@@ -303,6 +302,7 @@
           } catch (_) {}
         }
         payBtn.addEventListener("click", function () {
+          if (payBtn.disabled || payBtn.getAttribute("aria-busy") === "true") return
           clearErrors()
           setMsg("")
           setPayLoading(true)
