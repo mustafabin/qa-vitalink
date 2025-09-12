@@ -36,6 +36,13 @@
             <p id="receipt-date" class="text-xs text-slate-500 mt-1"></p>
           </div>
 
+          {{ if .page.Items }}
+          <div class="mt-6 rounded-xl bg-slate-50 p-4 border border-slate-200">
+            <h4 class="text-sm font-semibold mb-1">Items</h4>
+            <div id="items_list" class="text-sm text-slate-700 space-y-1"></div>
+          </div>
+          {{ end }}
+
           <div class="mt-6 rounded-xl bg-slate-50 p-4 border border-slate-200">
             <div class="flex items-center justify-between">
               <span class="text-sm text-slate-600">Amount due</span>
@@ -44,12 +51,7 @@
             <div class="mt-2 text-[11px] text-slate-500">
               Page ID: {{ .page.PageUID }}
             </div>
-            {{ if .page.Items }}
-            <div class="mt-3">
-              <h4 class="text-sm font-semibold mb-1">Items</h4>
-              <div id="items_list" class="text-sm text-slate-700 space-y-1"></div>
-            </div>
-            {{ end }}
+
           </div>
 
           <div class="mt-6 pt-6 border-t border-dashed border-slate-300">
@@ -243,7 +245,7 @@
                     <div class="font-medium">${title}</div>
                     <div class="text-[12px] text-slate-500">${desc}</div>
                   </div>
-                  <div class="font-mono text-sm">${price}</div>
+                  <div class="font-mono text-sm">${(Number(price) / 100).toFixed(2)}</div>
                 </div>`
               }).join("")
             }
