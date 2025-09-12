@@ -8,11 +8,11 @@
     <meta property="og:title" content="{{ .page.Title }}">
     <meta property="og:description" content="{{ .page.Description }}">
     {{ if .page.Logo }}<meta property="og:image" content="{{ .page.Logo }}">{{ end }}
-    {{ if .page.Logo }}<link rel="icon" href="{{ .page.Logo }}" />{{ end }}
+    {{ if .page.FavIcon }}<link rel="icon" href="{{ .page.FavIcon }}" />{{ end }}
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="bg-slate-50 text-slate-900 antialiased">
-    <div class="max-w-md mx-auto p-4">
+    <div class="max-w-md mx-auto p-4" id="page-data" data-created-at-utc="{{ .page.CreatedAt.Format "2006-01-02T15:04:05Z07:00" }}">
       <div class="bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
         {{ if .page.FeatureGraphic }}
         <div class="h-32 sm:h-40 md:h-48 w-full overflow-hidden bg-slate-100">
@@ -20,6 +20,11 @@
         </div>
         {{ end }}
         <div class="px-6 py-6">
+          {{ if .page.Logo }}
+          <div class="flex justify-center mb-4">
+            <img src="{{ .page.Logo }}" alt="Logo" class="h-10 w-auto" />
+          </div>
+          {{ end }}
           <div class="text-center">
             <div class="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
@@ -27,7 +32,7 @@
               </svg>
             </div>
             <h1 class="text-lg font-semibold">{{ .page.StoreName }}</h1>
-            <p id="receipt-date" class="text-xs text-slate-500 mt-1">{{ .page.CreatedAt.Format "Jan 2, 2006 3:04 PM" }}</p>
+            <p id="receipt-date" class="text-xs text-slate-500 mt-1"></p>
           </div>
 
           <div class="mt-6 rounded-xl bg-slate-50 p-4 border border-slate-200">
@@ -65,6 +70,20 @@
       </div>
     </div>
 
-
+    <script>
+      (function () {
+        try {
+          var el = document.getElementById('page-data')
+          var createdAtUtc = el && el.dataset && el.dataset.createdAtUtc
+          var dateEl = document.getElementById('receipt-date')
+          if (createdAtUtc && dateEl) {
+            var d = new Date(createdAtUtc)
+            if (!isNaN(d.getTime())) {
+              dateEl.textContent = d.toLocaleString()
+            }
+          }
+        } catch (e) {}
+      })()
+    </script>
   </body>
 </html>

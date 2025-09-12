@@ -10,10 +10,12 @@ import (
 
 	"bytes"
 	"context"
+	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/big"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -22,6 +24,21 @@ import (
 
 	"vitalink/internal/models"
 )
+
+var pageUIDLetters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+
+func generatePageUID(length int) (string, error) {
+	b := make([]rune, length)
+	for i := range b {
+		idx, err := rand.Int(rand.Reader, big.NewInt(int64(len(pageUIDLetters))))
+		if err != nil {
+			return "", err
+		}
+		b[i] = pageUIDLetters[idx.Int64()]
+	}
+	return string(b), nil
+}
+
 func grabConfig(token string) (string, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", "https://api.vitabyte.info/api/config", nil) // todo change this to the prod url
@@ -79,6 +96,7 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 		GooglePayMid          string `json:"google_pay_mid"`
 		FeatureGraphic        string `json:"feature_graphic"`
 		Logo                  string `json:"logo"`
+		FavIcon               string `json:"favicon"`
 	}
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": err.Error()})
@@ -96,7 +114,11 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 		req.MerchantID = merchantID
 	}
 	if req.PageUID == "" {
-		req.PageUID = fmt.Sprintf("%x", uuid.New().String()[:8])
+		if s, err := generatePageUID(10); err == nil {
+			req.PageUID = s
+		} else {
+			req.PageUID = strings.ReplaceAll(uuid.New().String()[:12], "-", "")
+		}
 	}
 
 	if req.Currency == "" { req.Currency = "USD" }
@@ -126,6 +148,7 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 		GooglePayMid:          req.GooglePayMid,
 		FeatureGraphic:        req.FeatureGraphic,
 		Logo:                  req.Logo,
+		FavIcon:               req.FavIcon,
 	}
 
 	if err := db.Create(&pp).Error; err != nil {
