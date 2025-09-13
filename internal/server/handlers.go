@@ -316,7 +316,7 @@ func markPaymentFulfilled(ctx context.Context, db *gorm.DB, page *models.Payment
 
 // Webhook configuration (should be in config or env vars)
 const (
-    webhookURL          = "https://your-golang-server.com/webhook/payment-fulfilled"
+    webhookURL          = "http://localhost:9000/webhook/payment-fulfilled"
     maxRetries          = 5
     initialRetryDelay   = 1 * time.Second
     maxRetryDelay       = 30 * time.Second
