@@ -9,6 +9,7 @@ import (
 
 	"vitalink/internal/models"
 	"vitalink/internal/server"
+	"vitalink/internal/worker"
 )
 
 func main() {
@@ -20,5 +21,9 @@ func main() {
 	if err := db.AutoMigrate(&models.PaymentPage{}); err != nil { log.Fatal(err) }
 
 	e := server.Router(db)
+
+	worker.InitWebhookWorker()
+    defer worker.ShutdownWebhookWorker()
+
 	if err := e.Start(":8080"); err != nil { log.Fatal(err) }
 }

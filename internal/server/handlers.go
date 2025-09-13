@@ -7,8 +7,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"net"
-
 	"bytes"
 	"context"
 	"crypto/rand"
@@ -17,7 +15,6 @@ import (
 	"fmt"
 	"io"
 	"math/big"
-	mathRand "math/rand"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -25,6 +22,8 @@ import (
 	"gorm.io/gorm"
 
 	"vitalink/internal/models"
+	"vitalink/internal/worker"
+	
 )
 
 var pageUIDLetters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
@@ -265,7 +264,6 @@ func markPaymentFulfilled(ctx context.Context, db *gorm.DB, page *models.Payment
         return errors.New("nil payment page")
     }
 
-    // Validate transaction approval
     approved := false
     if v, ok := dcResp["Status"].(string); ok && strings.EqualFold(v, "Approved") {
         approved = true
@@ -277,12 +275,11 @@ func markPaymentFulfilled(ctx context.Context, db *gorm.DB, page *models.Payment
         return errors.New("transaction not approved")
     }
 
-    // Skip if already paid
+    // In case of dupes
     if page.Status == "paid" {
         return nil
     }
 
-    // Update database first (transactional approach)
     tx := db.WithContext(ctx).Begin()
     defer func() {
         if r := recover(); r != nil {
@@ -299,13 +296,14 @@ func markPaymentFulfilled(ctx context.Context, db *gorm.DB, page *models.Payment
         return fmt.Errorf("database update failed: %w", err)
     }
 
-    // Send webhook with retry logic
-    if err := sendWebhookWithRetry(ctx, page, dcResp); err != nil {
-        tx.Rollback()
-        return fmt.Errorf("webhook delivery failed after retries: %w", err)
-    }
+	 worker.Worker.QueueWebhook(worker.WebhookJob{
+		Ctx:    context.Background(), 
+		Page:   page,
+		DcResp: dcResp,
+		Attempt: 0,
+	})
+        
 
-    // Commit transaction if webhook succeeds
     if err := tx.Commit().Error; err != nil {
         return fmt.Errorf("transaction commit failed: %w", err)
     }
@@ -313,143 +311,6 @@ func markPaymentFulfilled(ctx context.Context, db *gorm.DB, page *models.Payment
     page.Status = "paid"
     return nil
 }
-
-// Webhook configuration (should be in config or env vars)
-const (
-    webhookURL          = "http://localhost:9000/webhook/payment-fulfilled"
-    maxRetries          = 5
-    initialRetryDelay   = 1 * time.Second
-    maxRetryDelay       = 30 * time.Second
-    retryBackoffFactor  = 2.0
-)
-
-// Webhook payload structure
-type WebhookPayload struct {
-    PaymentPageID string                 `json:"payment_page_id"`
-	MerchantID   string                 `json:"merchant_id"`
-	RvcID        string                 `json:"rvc_id"`
-    Status        string                 `json:"status"`
-    Last4         string                 `json:"last4"`
-    Brand         string                 `json:"brand"`
-    Timestamp     time.Time              `json:"timestamp"`
-    RawResponse   map[string]interface{} `json:"raw_response,omitempty"`
-}
-
-func sendWebhookWithRetry(ctx context.Context, page *models.PaymentPage, dcResp map[string]any) error {
-    payload := WebhookPayload{
-        PaymentPageID: page.PageUID,
-		RvcID:        page.RvcID,
-		MerchantID:   page.MerchantID,
-        Status:        "paid",
-        Last4:         getString(dcResp, "Last4"),
-        Brand:         getString(dcResp, "Brand"),
-        Timestamp:     time.Now().UTC(),
-        RawResponse:   dcResp,
-    }
-
-    client := &http.Client{
-        Timeout: 10 * time.Second,
-    }
-
-    retryDelay := initialRetryDelay
-
-    for attempt := 0; attempt <= maxRetries; attempt++ {
-        if attempt > 0 {
-            log.Printf("Webhook attempt %d/%d for payment page %d", attempt, maxRetries, page.PageUID)
-            select {
-            case <-time.After(retryDelay):
-            case <-ctx.Done():
-                return ctx.Err()
-            }
-        }
-
-        err := sendWebhookRequest(ctx, client, payload)
-        if err == nil {
-            log.Printf("Webhook delivered successfully for payment page %d", page.PageUID)
-            return nil
-        }
-
-        // Check if error is retryable
-        if !isRetryableError(err) {
-            return fmt.Errorf("non-retryable error: %w", err)
-        }
-
-        // Calculate next retry delay with exponential backoff and jitter
-        retryDelay = time.Duration(float64(retryDelay) * retryBackoffFactor)
-        if retryDelay > maxRetryDelay {
-            retryDelay = maxRetryDelay
-        }
-        // Add jitter to avoid thundering herd
-        retryDelay = addJitter(retryDelay)
-    }
-
-    return errors.New("max retry attempts exceeded")
-}
-
-func sendWebhookRequest(ctx context.Context, client *http.Client, payload WebhookPayload) error {
-    jsonData, err := json.Marshal(payload)
-    if err != nil {
-        return fmt.Errorf("failed to marshal payload: %w", err)
-    }
-
-    req, err := http.NewRequestWithContext(ctx, "POST", webhookURL, bytes.NewBuffer(jsonData))
-    if err != nil {
-        return fmt.Errorf("failed to create request: %w", err)
-    }
-
-    req.Header.Set("Content-Type", "application/json")
-    req.Header.Set("User-Agent", "Vitalink/1.0")
-    // Add authentication if needed
-    // req.Header.Set("Authorization", "Bearer "+apiKey)
-
-    resp, err := client.Do(req)
-    if err != nil {
-        return fmt.Errorf("request failed: %w", err)
-    }
-    defer resp.Body.Close()
-
-    if resp.StatusCode != http.StatusOK {
-        body, _ := io.ReadAll(resp.Body)
-        return fmt.Errorf("webhook returned status %d: %s", resp.StatusCode, string(body))
-    }
-
-    return nil
-}
-
-func isRetryableError(err error) bool {
-    if err == nil {
-        return false
-    }
-
-    // Network errors, timeouts, and server errors are retryable
-    var netErr net.Error
-    if errors.As(err, &netErr) && netErr.Timeout() {
-        return true
-    }
-
-    // 5xx errors are retryable, 4xx (except 429) are not
-    if strings.Contains(err.Error(), "status 5") {
-        return true
-    }
-    if strings.Contains(err.Error(), "status 429") { // Rate limiting
-        return true
-    }
-
-    // Connection errors
-    if strings.Contains(err.Error(), "connection") ||
-        strings.Contains(err.Error(), "timeout") ||
-        strings.Contains(err.Error(), "reset") {
-        return true
-    }
-
-    return false
-}
-
-func addJitter(delay time.Duration) time.Duration {
-    jitter := time.Duration(mathRand.Int63n(int64(delay / 4)))
-    return delay + jitter - (jitter / 2)
-}
-
 func getString(m map[string]any, key string) string {
     if v, ok := m[key]; ok {
         if s, ok := v.(string); ok {
@@ -458,7 +319,6 @@ func getString(m map[string]any, key string) string {
     }
     return ""
 }
-
 func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	merchantID := c.Param("merchant_id")
 	pageUID := c.Param("page_uid")
