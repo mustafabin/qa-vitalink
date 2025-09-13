@@ -7,6 +7,7 @@ import (
 type PaymentPage struct {
 	MerchantID   string         `gorm:"primaryKey" json:"merchant_id"`
 	PageUID      string         `gorm:"primaryKey" json:"page_uid"`
+	RvcID        string         `json:"rvc_id"`
 	AmountCents  int64          `json:"amount_cents"`
 	Currency     string         `gorm:"default:USD" json:"currency"`
 	Title        string         `json:"title"`
