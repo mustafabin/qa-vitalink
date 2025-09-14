@@ -341,7 +341,6 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	log.Println("Charging payment for page:", page.MerchantID, page.PageUID)
 	log.Println("Token:", req.DatacapToken)
 
-	// endpoint := "https://pay.dcap.com/v2/credit/sale"
 	endpoint := "https://api.vitapay.com/v1/credit/sale"
 
 	if page.AmountCents < 1 {
@@ -389,10 +388,7 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]any{"error": "request build error"})
 	}
-	// api_secert := "y28WYo1-JyHuybes4rHtSMGYRKsG9fwxASlKMUn1p0N7qF9T8I_qVkUz8RSp86TvbRid3bIEZTSKSmHzRgKMRA" //! temporary
-	// auth := base64.StdEncoding.EncodeToString([]byte(page.MerchantID+":"+api_secert))
 	reqHttp.Header.Set("Content-Type", "application/json")
-	// reqHttp.Header.Set("Authorization", "Basic "+ auth)
 
 	resp, err := http.DefaultClient.Do(reqHttp)
 	if err != nil {
