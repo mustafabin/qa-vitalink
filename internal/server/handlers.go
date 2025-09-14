@@ -338,9 +338,11 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	if strings.TrimSpace(req.DatacapToken) == "" {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "datacap_token is required"})
 	}
+	log.Println("Charging payment for page:", page.MerchantID, page.PageUID)
+	log.Println("Token:", req.DatacapToken)
 
 	// endpoint := "https://pay.dcap.com/v2/credit/sale"
-	endpoint := "https://api.vitapay.com/v2/credit/sale"
+	endpoint := "http://localhost:9000/v1/credit/sale"
 
 	if page.AmountCents < 1 {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "amount must be at least 0.01"})
