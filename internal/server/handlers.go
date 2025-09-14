@@ -10,7 +10,6 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -22,7 +21,6 @@ import (
 	"gorm.io/gorm"
 
 	"vitalink/internal/models"
-	"vitalink/internal/worker"
 	
 )
 
@@ -296,14 +294,6 @@ func markPaymentFulfilled(ctx context.Context, db *gorm.DB, page *models.Payment
         return fmt.Errorf("database update failed: %w", err)
     }
 
-	 worker.Worker.QueueWebhook(worker.WebhookJob{
-		Ctx:    context.Background(), 
-		Page:   page,
-		DcResp: dcResp,
-		Attempt: 0,
-	})
-        
-
     if err := tx.Commit().Error; err != nil {
         return fmt.Errorf("transaction commit failed: %w", err)
     }
@@ -339,14 +329,17 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 		Last4 string `json:"last4"`
 		Brand string `json:"brand"`
 	}
+	
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "invalid request"})
 	}
+
 	if strings.TrimSpace(req.DatacapToken) == "" {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "datacap_token is required"})
 	}
 
-	endpoint := "https://pay.dcap.com/v2/credit/sale"
+	// endpoint := "https://pay.dcap.com/v2/credit/sale"
+	endpoint := "https://api.vitapay.com/v2/credit/sale"
 
 	if page.AmountCents < 1 {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "amount must be at least 0.01"})
@@ -355,17 +348,31 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 
 	payload := map[string]string{
 		"Token":        req.DatacapToken,
-		"Token1":       req.DatacapToken,
 		"Amount":       amount,
+		"Tax":          "0.00",
+		"CustomerCode": page.InvoiceNo, // InvoiceNo
 		"PartialAuth": "Disallow",
 		"CardHolderID": "Allow_V2",
 		"InvoiceNo":    page.InvoiceNo,
+		"MerchantID":   page.MerchantID,
+		"PageUID":      page.PageUID,
 	}
-	if page.InvoiceNo != "" { payload["InvoiceNo"] = page.InvoiceNo }
-	if page.PaymentFeeAmount != "" { payload["PaymentFee"] = page.PaymentFeeAmount }
-	if page.PaymentFeeDescription != "" { payload["PaymentFeeDescription"] = page.PaymentFeeDescription }
-	if page.SurchargeAmount != "" { payload["SurchargeWithLookup"] = page.SurchargeAmount }
-	if page.TaxAmount != "" { payload["Tax"] = page.TaxAmount }
+
+	if page.InvoiceNo != "" {
+		payload["InvoiceNo"] = page.InvoiceNo
+	}
+	if page.PaymentFeeAmount != "" {
+		payload["PaymentFee"] = page.PaymentFeeAmount
+	}
+	if page.PaymentFeeDescription != "" {
+		payload["PaymentFeeDescription"] = page.PaymentFeeDescription
+	}
+	if page.SurchargeAmount != "" {
+		payload["SurchargeWithLookup"] = page.SurchargeAmount
+	}
+	if page.TaxAmount != "" {
+		payload["Tax"] = page.TaxAmount
+	}
 
 	bodyBytes, err := json.Marshal(payload)
 	if err != nil {
@@ -379,10 +386,10 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]any{"error": "request build error"})
 	}
-	api_secert := "y28WYo1-JyHuybes4rHtSMGYRKsG9fwxASlKMUn1p0N7qF9T8I_qVkUz8RSp86TvbRid3bIEZTSKSmHzRgKMRA" //! temporary
-	auth := base64.StdEncoding.EncodeToString([]byte(page.MerchantID+":"+api_secert))
+	// api_secert := "y28WYo1-JyHuybes4rHtSMGYRKsG9fwxASlKMUn1p0N7qF9T8I_qVkUz8RSp86TvbRid3bIEZTSKSmHzRgKMRA" //! temporary
+	// auth := base64.StdEncoding.EncodeToString([]byte(page.MerchantID+":"+api_secert))
 	reqHttp.Header.Set("Content-Type", "application/json")
-	reqHttp.Header.Set("Authorization", "Basic "+ auth)
+	// reqHttp.Header.Set("Authorization", "Basic "+ auth)
 
 	resp, err := http.DefaultClient.Do(reqHttp)
 	if err != nil {
