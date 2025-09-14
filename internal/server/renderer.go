@@ -18,9 +18,9 @@ func NewRenderer() *TemplateRenderer {
 		"formatAmount": func(cents int64, currency string) string {
 			major := float64(cents) / 100.0
 			s := sprintf("%.2f", major)
-			s = strings.TrimRight(s, "0")
-			s = strings.TrimRight(s, ".")
-			return strings.ToUpper(currency) + " " + s
+			// s = strings.TrimRight(s, "0")
+			// s = strings.TrimRight(s, ".")
+			return strings.ToUpper(currency) + " $" + s
 		},
 	}
 	t := template.Must(template.New("").Funcs(funcs).ParseGlob("templates/*.html"))
