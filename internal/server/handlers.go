@@ -228,6 +228,7 @@ func handleViewPaymentPage(c echo.Context, db *gorm.DB) error {
 	return c.Render(http.StatusOK, "payment.html", map[string]any{"page": pp})
 }
 
+
 func handleQRPaymentPage(c echo.Context) error {
 	merchantID := c.Param("merchant_id")
 	pageUID := c.Param("page_uid")

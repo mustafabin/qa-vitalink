@@ -21,6 +21,10 @@ func main() {
 
 	e := server.Router(db)
 
+	serverPort := os.Getenv("PORT")
+	if serverPort == "" {
+		serverPort = "8080" // Default port
+	}
 
-	if err := e.Start(":8080"); err != nil { log.Fatal(err) }
+	if err := e.Start(":" + serverPort); err != nil { log.Fatal(err) }
 }

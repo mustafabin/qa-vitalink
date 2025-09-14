@@ -17,7 +17,9 @@ func registerRoutes(e *echo.Echo, db *gorm.DB) {
 		}
 		return c.Blob(http.StatusOK, "text/plain; charset=utf-8", b)
 	})
-
+	e.GET("/", func(c echo.Context) error {
+		return c.File("public/index.html")
+	})
 	e.POST("/api/payment-pages", func(c echo.Context) error { return handleCreatePaymentPage(c, db) })
 	e.POST("/api/payments/:merchant_id/:page_uid/charge", func(c echo.Context) error { return handleChargePayment(c, db) })
 
