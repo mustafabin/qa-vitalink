@@ -17,6 +17,9 @@ func registerRoutes(e *echo.Echo, db *gorm.DB) {
 		}
 		return c.Blob(http.StatusOK, "text/plain; charset=utf-8", b)
 	})
+	e.GET("/applePayIntegrationTest.html", func(c echo.Context) error {
+		return c.File("public/applePayIntegrationTest.html")
+	})
 	e.GET("/", func(c echo.Context) error {
 		return c.File("public/index.html")
 	})
