@@ -150,6 +150,8 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 		b, _ := json.Marshal(arr)
 		itemsJSON = string(b)
 	}
+	log.Println("Creating payment page for merchant:", req.MerchantID, "page UID:", req.PageUID)
+	log.Println("Apple Pay MID:", req.ApplePayMid)
 
 	pp := models.PaymentPage{
 		MerchantID:  req.MerchantID,
@@ -225,6 +227,8 @@ func handleViewPaymentPage(c echo.Context, db *gorm.DB) error {
 	if pp.Status != "open" || pp.IsExpired(time.Now()) {
 		return c.Render(http.StatusOK, "expired.html", map[string]any{"page": pp})
 	}
+	log.Println("Rendering payment page for:", pp.MerchantID, pp.PageUID)
+	log.Println("Apple Pay MID:", pp.ApplePayMid)
 	return c.Render(http.StatusOK, "payment.html", map[string]any{"page": pp})
 }
 
@@ -351,7 +355,7 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	payload := map[string]string{
 		"Token":        req.DatacapToken,
 		"Amount":       amount,
-		"Tax":          "0.00",
+		"Tax":          page.TaxAmount,
 		"CustomerCode": page.InvoiceNo, // InvoiceNo
 		"PartialAuth": "Disallow",
 		"CardHolderID": "Allow_V2",
