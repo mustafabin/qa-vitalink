@@ -229,6 +229,7 @@ func handleViewPaymentPage(c echo.Context, db *gorm.DB) error {
 	}
 	log.Println("Rendering payment page for:", pp.MerchantID, pp.PageUID)
 	log.Println("Apple Pay MID:", pp.ApplePayMid)
+	log.Println("Google Pay MID:", pp.GooglePayMid)
 	return c.Render(http.StatusOK, "payment.html", map[string]any{"page": pp})
 }
 
