@@ -1,0 +1,787 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Datacap Wallet API - Integration Configuration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .step {
+            border: 2px solid #e0e0e0;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        .step.completed {
+            border-color: #4CAF50;
+            background-color: #f1f8e9;
+        }
+        .step.error {
+            border-color: #f44336;
+            background-color: #ffebee;
+        }
+        .step h2 {
+            margin-top: 0;
+            color: #555;
+        }
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background-color: #2196F3;
+            color: white;
+            text-align: center;
+            line-height: 30px;
+            border-radius: 50%;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .step.completed .step-number {
+            background-color: #4CAF50;
+        }
+        .step.error .step-number {
+            background-color: #f44336;
+        }
+        .environment-selector {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .environment-option {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .environment-option:hover {
+            border-color: #2196F3;
+            background-color: #e3f2fd;
+        }
+        .environment-option.selected {
+            border-color: #2196F3;
+            background-color: #2196F3;
+            color: white;
+        }
+        .status-message {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .status-message.success {
+            background-color: #c8e6c9;
+            color: #2e7d32;
+            border: 1px solid #4CAF50;
+        }
+        .status-message.error {
+            background-color: #ffcdd2;
+            color: #c62828;
+            border: 1px solid #f44336;
+        }
+        .status-message.warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffc107;
+        }
+        .status-message.info {
+            background-color: #cfe2ff;
+            color: #084298;
+            border: 1px solid #b6d4fe;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        button {
+            background-color: #2196F3;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        button:hover {
+            background-color: #1976D2;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .file-comparison {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        #apple-pay-button {
+            margin: 20px 0;
+            min-height: 40px;
+        }
+        .hidden {
+            display: none;
+        }
+        .payment-output {
+            background-color: #e8e8e8;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #2196F3;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .test-info {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+        .debug-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #263238;
+            color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 400px;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        .debug-panel.minimized {
+            max-height: 50px;
+            overflow: hidden;
+        }
+        .debug-panel h3 {
+            margin: 0 0 10px 0;
+            color: #81c784;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .debug-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #666;
+        }
+        .debug-entry.info {
+            border-left-color: #64b5f6;
+        }
+        .debug-entry.success {
+            border-left-color: #81c784;
+        }
+        .debug-entry.warning {
+            border-left-color: #ffb74d;
+        }
+        .debug-entry.error {
+            border-left-color: #e57373;
+        }
+        .debug-entry.network {
+            border-left-color: #ba68c8;
+        }
+        .debug-timestamp {
+            color: #999;
+            font-size: 10px;
+        }
+        .debug-toggle {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background-color: #37474f;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 999;
+        }
+        .debug-toggle:hover {
+            background-color: #455a64;
+        }
+        .debug-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .debug-btn {
+            padding: 5px 10px;
+            background-color: #37474f;
+            border: none;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        .debug-btn:hover {
+            background-color: #455a64;
+        }
+        .minimize-btn {
+            cursor: pointer;
+            color: #fff;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Datacap Wallet API - Integration Configuration Test</h1>
+
+        <div class="test-info">
+            <strong>ℹ️ About this test:</strong><br>
+            This page helps verify that your Apple Pay integration with Datacap Wallet API is properly configured.
+            It will check your domain setup, validate configuration, and test the payment flow.
+        </div>
+
+        <!-- Step 1: Environment Selection -->
+        <div class="step" id="step1">
+            <h2><span class="step-number">1</span>Select Environment</h2>
+            <p>Choose which Datacap environment you want to test against:</p>
+            <div class="environment-selector">
+                <div class="environment-option" onclick="selectEnvironment('certification')">
+                    <h3>Certification</h3>
+                    <p>wallet-cert.dcap.com</p>
+                </div>
+                <div class="environment-option" onclick="selectEnvironment('production')">
+                    <h3>Production</h3>
+                    <p>wallet.dcap.com</p>
+                </div>
+            </div>
+            <div id="env-status"></div>
+        </div>
+
+        <!-- Step 2: Domain Verification -->
+        <div class="step hidden" id="step2">
+            <h2><span class="step-number">2</span>Domain Verification</h2>
+            <p>Verifying Apple Pay domain association file...</p>
+            <div id="domain-status"></div>
+            <div class="file-comparison hidden" id="file-comparison"></div>
+            <button id="proceed-btn" class="hidden" onclick="proceedToStep3()">Proceed to Configuration</button>
+        </div>
+
+        <!-- Step 3: Configuration -->
+        <div class="step hidden" id="step3">
+            <h2><span class="step-number">3</span>Enter Configuration</h2>
+            <p>Enter your Datacap Wallet API credentials:</p>
+            <label for="tokenKey">Token Key:</label>
+            <input type="password" id="tokenKey" placeholder="Enter your token key" />
+
+            <label for="merchantId">Apple Merchant ID:</label>
+            <input type="text" id="merchantId" placeholder="merchant.com.example" />
+
+            <label for="storeName">Store Name (Optional):</label>
+            <input type="text" id="storeName" placeholder="My Store" value="Test Store" />
+
+            <label for="amount">Test Amount:</label>
+            <input type="text" id="amount" placeholder="9.99" value="9.99" />
+
+            <button onclick="initializeApplePay()">Initialize Apple Pay Test</button>
+            <div id="config-status"></div>
+        </div>
+
+        <!-- Step 4: Apple Pay Test -->
+        <div class="step hidden" id="step4">
+            <h2><span class="step-number">4</span>Apple Pay Test</h2>
+            <p>Click the Apple Pay button below to test your integration:</p>
+            <div id="apple-pay-button"></div>
+            <div id="payment-status"></div>
+            <div class="payment-output hidden" id="payment-output"></div>
+        </div>
+    </div>
+
+    <!-- Debug Panel -->
+    <div class="debug-toggle" onclick="toggleDebugPanel()">🐞 Debug Mode</div>
+    <div class="debug-panel hidden" id="debugPanel">
+        <h3>
+            Debug Console
+            <span class="minimize-btn" onclick="toggleDebugPanel()">−</span>
+        </h3>
+        <div class="debug-controls">
+            <button class="debug-btn" onclick="clearDebugLog()">Clear</button>
+            <button class="debug-btn" onclick="exportDebugLog()">Export</button>
+            <button class="debug-btn" onclick="copyDebugLog()">Copy</button>
+        </div>
+        <div id="debugLog"></div>
+    </div>
+
+    <script>
+        // Global variables
+        let selectedEnvironment = null;
+        let datacapBaseUrl = null;
+        let applePaysScript = null;
+        let tokenCallback = null;
+        let debugMode = false;
+        let debugEntries = [];
+
+        // Environment selection
+        function selectEnvironment(env) {
+            selectedEnvironment = env;
+
+            // Update UI
+            document.querySelectorAll('.environment-option').forEach(el => {
+                el.classList.remove('selected');
+            });
+            event.target.closest('.environment-option').classList.add('selected');
+
+            // Set base URL
+            if (env === 'certification') {
+                datacapBaseUrl = 'https://wallet-cert.dcap.com';
+            } else {
+                datacapBaseUrl = 'https://wallet.dcap.com';
+            }
+
+            // Update status
+            document.getElementById('env-status').innerHTML =
+                '<div class="status-message success">Environment selected: ' +
+                env.charAt(0).toUpperCase() + env.slice(1) +
+                ' (' + datacapBaseUrl + ')</div>';
+
+            // Mark step 1 as completed
+            document.getElementById('step1').classList.add('completed');
+
+            // Show step 2 and start verification
+            document.getElementById('step2').classList.remove('hidden');
+            verifyDomain();
+        }
+
+        // Domain verification
+        async function verifyDomain() {
+            const statusDiv = document.getElementById('domain-status');
+            const comparisonDiv = document.getElementById('file-comparison');
+
+            statusDiv.innerHTML = '<div class="loader"></div><p>Checking domain association files...</p>';
+
+            try {
+                // Fetch local domain association file
+                const localUrl = window.location.origin + '/.well-known/apple-developer-merchantid-domain-association';
+                const datacapUrl = datacapBaseUrl + '/.well-known/apple-developer-merchantid-domain-association';
+
+                statusDiv.innerHTML += '<div class="status-message info">Fetching local file: ' + localUrl + '</div>';
+
+                let localResponse, datacapResponse;
+                let localContent = null, datacapContent = null;
+
+                // Try to fetch local file
+                try {
+                    localResponse = await fetch(localUrl);
+                    if (localResponse.ok) {
+                        localContent = await localResponse.text();
+                    }
+                } catch (e) {
+                    console.error('Local fetch error:', e);
+                }
+
+                statusDiv.innerHTML += '<div class="status-message info">Fetching Datacap file: ' + datacapUrl + '</div>';
+
+                // Fetch Datacap file
+                try {
+                    datacapResponse = await fetch(datacapUrl);
+                    if (datacapResponse.ok) {
+                        datacapContent = await datacapResponse.text();
+                    }
+                } catch (e) {
+                    console.error('Datacap fetch error:', e);
+                }
+
+                // Analyze results
+                if (!localContent) {
+                    statusDiv.innerHTML = '<div class="status-message error">❌ Could not fetch local domain association file. ' +
+                        'Make sure /.well-known/apple-developer-merchantid-domain-association is accessible on your domain.</div>';
+                    statusDiv.innerHTML += '<div class="status-message warning">⚠️ This file is required for Apple Pay to work on your domain. ' +
+                        'You need to host the same file that Datacap uses.</div>';
+
+                    if (datacapContent) {
+                        statusDiv.innerHTML += '<div class="status-message info">ℹ️ Datacap\'s domain association file content:</div>';
+                        comparisonDiv.innerHTML = '<strong>Datacap file content (copy this to your domain):</strong>\n\n' + datacapContent;
+                        comparisonDiv.classList.remove('hidden');
+                    }
+
+                    document.getElementById('step2').classList.add('error');
+                } else if (!datacapContent) {
+                    statusDiv.innerHTML = '<div class="status-message error">❌ Could not fetch Datacap\'s domain association file. ' +
+                        'This might indicate a network issue or configuration problem.</div>';
+                    document.getElementById('step2').classList.add('error');
+                } else {
+                    // Both files fetched successfully - compare them
+                    const filesMatch = localContent.trim() === datacapContent.trim();
+
+                    if (filesMatch) {
+                        statusDiv.innerHTML = '<div class="status-message success">✅ Domain association files match! ' +
+                            'Your domain is properly configured for Apple Pay.</div>';
+                        document.getElementById('step2').classList.add('completed');
+                        document.getElementById('proceed-btn').classList.remove('hidden');
+                    } else {
+                        statusDiv.innerHTML = '<div class="status-message error">❌ Domain association files do not match!</div>';
+                        statusDiv.innerHTML += '<div class="status-message warning">⚠️ Your local file must match Datacap\'s file exactly for Apple Pay to work.</div>';
+
+                        comparisonDiv.innerHTML = '<strong>Your file:</strong>\n' + localContent + '\n\n' +
+                            '<strong>Expected (Datacap) file:</strong>\n' + datacapContent;
+                        comparisonDiv.classList.remove('hidden');
+
+                        document.getElementById('step2').classList.add('error');
+                    }
+                }
+
+                // Allow proceeding even with warnings
+                document.getElementById('proceed-btn').classList.remove('hidden');
+
+            } catch (error) {
+                statusDiv.innerHTML = '<div class="status-message error">❌ Error during verification: ' + error.message + '</div>';
+                document.getElementById('step2').classList.add('error');
+                document.getElementById('proceed-btn').classList.remove('hidden');
+            }
+        }
+
+        // Proceed to configuration step
+        function proceedToStep3() {
+            document.getElementById('step3').classList.remove('hidden');
+            document.getElementById('step3').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Initialize Apple Pay
+        async function initializeApplePay() {
+            const tokenKey = document.getElementById('tokenKey').value;
+            const merchantId = document.getElementById('merchantId').value;
+            const storeName = document.getElementById('storeName').value || 'Test Store';
+            const amount = document.getElementById('amount').value || '9.99';
+            const statusDiv = document.getElementById('config-status');
+
+            // Validate inputs
+            if (!tokenKey || !merchantId) {
+                statusDiv.innerHTML = '<div class="status-message error">❌ Please enter both Token Key and Apple Merchant ID</div>';
+                return;
+            }
+
+            statusDiv.innerHTML = '<div class="status-message info">Loading Apple Pay script...</div>';
+
+            // Mark step 3 as completed
+            document.getElementById('step3').classList.add('completed');
+
+            // Show step 4
+            document.getElementById('step4').classList.remove('hidden');
+
+            // Define token callback
+            tokenCallback = function(tokenResponse) {
+                return new Promise(function(resolve, reject) {
+                    const outputDiv = document.getElementById('payment-output');
+                    const paymentStatus = document.getElementById('payment-status');
+
+                    outputDiv.classList.remove('hidden');
+                    outputDiv.innerHTML = "Token API Response:\n" + JSON.stringify(tokenResponse, null, 2) + "\n\n";
+
+                    if (tokenResponse.Error) {
+                        paymentStatus.innerHTML = '<div class="status-message error">❌ Token Error: ' + tokenResponse.Error + '</div>';
+                        reject(tokenResponse.Error);
+                        return;
+                    }
+
+                    paymentStatus.innerHTML = '<div class="status-message success">✅ Payment token received successfully!</div>';
+
+                    outputDiv.innerHTML += "Token Details:\n";
+                    outputDiv.innerHTML += "Token: " + tokenResponse.Token + "\n";
+                    outputDiv.innerHTML += "Brand: " + tokenResponse.Brand + "\n";
+                    outputDiv.innerHTML += "Last4: " + tokenResponse.Last4 + "\n\n";
+                    outputDiv.innerHTML += "Integration Status: SUCCESS - Your Apple Pay integration is working correctly!";
+
+                    resolve("Payment processed successfully");
+                });
+            };
+
+            // Load Apple Pay script dynamically
+            if (applePaysScript) {
+                applePaysScript.remove();
+            }
+
+            applePaysScript = document.createElement('script');
+            applePaysScript.src = datacapBaseUrl + '/v1/client/applepay';
+
+            applePaysScript.onload = function() {
+                statusDiv.innerHTML = '<div class="status-message success">✅ Apple Pay script loaded successfully</div>';
+
+                // Initialize Apple Pay with test configuration
+                try {
+                    DatacapApplePay.init(
+                        tokenCallback,
+                        tokenKey,
+                        storeName,
+                        merchantId,
+                        amount,
+                        null  // No recurring config for basic test
+                    );
+
+                    document.getElementById('payment-status').innerHTML =
+                        '<div class="status-message info">ℹ️ Apple Pay initialized. If you don\'t see the Apple Pay button, ' +
+                        'make sure you\'re using Safari on a device with Apple Pay configured.</div>';
+
+                } catch (error) {
+                    statusDiv.innerHTML = '<div class="status-message error">❌ Failed to initialize Apple Pay: ' + error.message + '</div>';
+                }
+            };
+
+            applePaysScript.onerror = function() {
+                statusDiv.innerHTML = '<div class="status-message error">❌ Failed to load Apple Pay script from ' +
+                    datacapBaseUrl + '/v1/client/applepay</div>';
+                statusDiv.innerHTML += '<div class="status-message warning">⚠️ Make sure the Datacap Wallet API is accessible and your network allows the connection.</div>';
+            };
+
+            document.head.appendChild(applePaysScript);
+        }
+
+        // Debug Mode Functions
+        function toggleDebugPanel() {
+            const panel = document.getElementById('debugPanel');
+            debugMode = !panel.classList.contains('hidden');
+            panel.classList.toggle('hidden');
+
+            if (debugMode) {
+                debugLog('info', 'Debug mode enabled - All operations will be logged');
+                debugLog('info', 'Browser: ' + navigator.userAgent);
+                debugLog('info', 'Current URL: ' + window.location.href);
+                debugLog('info', 'Protocol: ' + window.location.protocol);
+
+                // Check Apple Pay availability
+                if (window.ApplePaySession) {
+                    debugLog('success', 'ApplePaySession API is available');
+                    if (ApplePaySession.canMakePayments()) {
+                        debugLog('success', 'Device can make Apple Pay payments');
+                    } else {
+                        debugLog('warning', 'Device cannot make Apple Pay payments');
+                    }
+                } else {
+                    debugLog('warning', 'ApplePaySession API not available - Use Safari on Apple device');
+                }
+            }
+        }
+
+        function debugLog(type, message, details = null) {
+            if (!debugMode && document.getElementById('debugPanel').classList.contains('hidden')) return;
+
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = {
+                timestamp: timestamp,
+                type: type,
+                message: message,
+                details: details
+            };
+
+            debugEntries.push(entry);
+
+            const logDiv = document.getElementById('debugLog');
+            const entryDiv = document.createElement('div');
+            entryDiv.className = 'debug-entry ' + type;
+
+            let html = '<span class="debug-timestamp">' + timestamp + '</span> ';
+            html += message;
+
+            if (details) {
+                html += '<br><small>' + JSON.stringify(details, null, 2) + '</small>';
+            }
+
+            entryDiv.innerHTML = html;
+            logDiv.appendChild(entryDiv);
+
+            // Auto-scroll to bottom
+            logDiv.scrollTop = logDiv.scrollHeight;
+
+            // Also log to browser console
+            console.log('[Datacap Debug ' + type.toUpperCase() + ']', message, details || '');
+        }
+
+        function clearDebugLog() {
+            document.getElementById('debugLog').innerHTML = '';
+            debugEntries = [];
+            debugLog('info', 'Debug log cleared');
+        }
+
+        function exportDebugLog() {
+            const logText = debugEntries.map(entry => {
+                let text = `[${entry.timestamp}] ${entry.type.toUpperCase()}: ${entry.message}`;
+                if (entry.details) {
+                    text += '\n' + JSON.stringify(entry.details, null, 2);
+                }
+                return text;
+            }).join('\n\n');
+
+            const blob = new Blob([logText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'datacap-integration-debug-' + new Date().toISOString() + '.txt';
+            a.click();
+            URL.revokeObjectURL(url);
+
+            debugLog('info', 'Debug log exported');
+        }
+
+        function copyDebugLog() {
+            const logText = debugEntries.map(entry => {
+                let text = `[${entry.timestamp}] ${entry.type.toUpperCase()}: ${entry.message}`;
+                if (entry.details) {
+                    text += '\n' + JSON.stringify(entry.details, null, 2);
+                }
+                return text;
+            }).join('\n\n');
+
+            navigator.clipboard.writeText(logText).then(() => {
+                debugLog('success', 'Debug log copied to clipboard');
+            }).catch(err => {
+                debugLog('error', 'Failed to copy to clipboard', err);
+            });
+        }
+
+        // Override console methods to capture logs
+        const originalConsoleLog = console.log;
+        const originalConsoleError = console.error;
+        const originalConsoleWarn = console.warn;
+
+        console.log = function(...args) {
+            originalConsoleLog.apply(console, args);
+            debugLog('info', 'Console: ' + args.join(' '));
+        };
+
+        console.error = function(...args) {
+            originalConsoleError.apply(console, args);
+            debugLog('error', 'Console Error: ' + args.join(' '));
+        };
+
+        console.warn = function(...args) {
+            originalConsoleWarn.apply(console, args);
+            debugLog('warning', 'Console Warning: ' + args.join(' '));
+        };
+
+        // Intercept network requests
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+            const url = args[0];
+            const options = args[1] || {};
+
+            debugLog('network', 'Fetch request: ' + url, {
+                method: options.method || 'GET',
+                headers: options.headers
+            });
+
+            return originalFetch.apply(this, args)
+                .then(response => {
+                    debugLog('network', 'Fetch response: ' + url, {
+                        status: response.status,
+                        statusText: response.statusText,
+                        headers: Object.fromEntries(response.headers.entries())
+                    });
+                    return response;
+                })
+                .catch(error => {
+                    debugLog('error', 'Fetch error: ' + url, {
+                        error: error.message
+                    });
+                    throw error;
+                });
+        };
+
+        // Modified environment selection with debug logging
+        const originalSelectEnvironment = selectEnvironment;
+        selectEnvironment = function(env) {
+            debugLog('info', 'Environment selected: ' + env);
+            originalSelectEnvironment(env);
+        };
+
+        // Modified domain verification with debug logging
+        const originalVerifyDomain = verifyDomain;
+        verifyDomain = async function() {
+            debugLog('info', 'Starting domain verification');
+            await originalVerifyDomain();
+        };
+
+        // Modified Apple Pay initialization with debug logging
+        const originalInitializeApplePay = initializeApplePay;
+        initializeApplePay = async function() {
+            debugLog('info', 'Initializing Apple Pay');
+            const tokenKey = document.getElementById('tokenKey').value;
+            const merchantId = document.getElementById('merchantId').value;
+
+            debugLog('info', 'Configuration', {
+                merchantId: merchantId,
+                tokenKeyLength: tokenKey.length,
+                storeName: document.getElementById('storeName').value,
+                amount: document.getElementById('amount').value
+            });
+
+            await originalInitializeApplePay();
+        };
+
+        // Additional test opportunities message
+        window.addEventListener('load', function() {
+            console.log('Datacap Wallet API Integration Test loaded');
+            console.log('Click "Debug Mode" button for detailed troubleshooting');
+
+            // Auto-enable debug mode if URL contains ?debug=true
+            if (window.location.search.includes('debug=true')) {
+                toggleDebugPanel();
+            }
+        });
+
+        // Monitor for Apple Pay script events
+        window.addEventListener('error', function(e) {
+            if (e.filename && e.filename.includes('applepay')) {
+                debugLog('error', 'Apple Pay script error', {
+                    message: e.message,
+                    filename: e.filename,
+                    line: e.lineno,
+                    column: e.colno
+                });
+            }
+        });
+    </script>
+</body>
+</html>
