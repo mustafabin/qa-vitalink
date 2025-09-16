@@ -361,15 +361,13 @@
         let methodApple = document.getElementById("method-apple")
         let methodAppleWrapper = document.getElementById("method-apple-wrapper")
         let manualSection = document.getElementById("manual-section")
-        
+        DatacapApplePay.init(tokenCallback, webTokenMid ,storeName, applePayMid,(amountCents / 100).toFixed(2))
+        // dont have google pay mid yet
+        // DatacapGooglePay.init(tokenCallback, webTokenMid ,merchantId,googlePayMid,(amountCents / 100).toFixed(2))
     </script>
-     <script>
-        console.log("Apple Pay MID:", applePayMid)
-        console.log("Google Pay MID:", googlePayMid)
-        console.log("Web Token MID:", webTokenMid)
-        console.log("Amount cents:", amountCents)
-        console.log("merchantId:", merchantId)
-        DatacapApplePay.init(tokenCallback, webTokenMid ,merchantId, applePayMid,(amountCents / 100).toFixed(2))
+  </body>
+</html>
+        DatacapApplePay.init(tokenCallback, webTokenMid ,storeName, applePayMid,(amountCents / 100).toFixed(2))
         // dont have google pay mid yet
         // DatacapGooglePay.init(tokenCallback, webTokenMid ,merchantId,googlePayMid,(amountCents / 100).toFixed(2))
     </script>
