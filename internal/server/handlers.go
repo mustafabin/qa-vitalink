@@ -98,6 +98,10 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 		Logo                  string `json:"logo"`
 		FavIcon               string `json:"favicon"`
 	}
+
+	log.Println("Create payment page request received")
+	log.Println("Request body:", c.Request().Body)
+	
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": err.Error()})
 	}
@@ -133,7 +137,7 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 		Description string  `json:"description"`
 		Price       float64 `json:"price"`
 		Quantity    int     `json:"quantity"`
-		Total       float64 `json:"total"`	
+		Total       float64 `json:"total"`
 	}
 	if len(req.Items) > 0 {
 		var arr []incomingItem
