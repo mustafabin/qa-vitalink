@@ -100,8 +100,15 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 	}
 
 	log.Println("Create payment page request received")
-	log.Println("Request body:", c.Request().Body)
-	
+	// pretty logging of request body
+	bodyBytes, err := io.ReadAll(c.Request().Body)
+	if err != nil {
+		log.Println("Error reading request body:", err)
+	} else {
+		log.Println("Request body:", string(bodyBytes))
+	}
+	c.Request().Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": err.Error()})
 	}
