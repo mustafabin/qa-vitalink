@@ -132,6 +132,8 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 		Title       string  `json:"title"`
 		Description string  `json:"description"`
 		Price       float64 `json:"price"`
+		Quantity    int     `json:"quantity"`
+		Total       float64 `json:"total"`	
 	}
 	if len(req.Items) > 0 {
 		var arr []incomingItem

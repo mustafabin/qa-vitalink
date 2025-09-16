@@ -240,7 +240,11 @@
                 let title = (it && it.title) || ""
                 let desc = (it && it.description) || ""
                 let price = (it && it.price) || 0
+                let quantity = (it && it.quantity) || 0
+                let total = (it && it.total) || 0
+
                 return `<div class="flex items-center justify-between">
+                  <div>${quantity}</div>
                   <div>
                     <div class="font-medium">${title}</div>
                     <div class="text-[12px] text-slate-500">${desc}</div>
