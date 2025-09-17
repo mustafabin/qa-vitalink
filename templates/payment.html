@@ -10,8 +10,8 @@
     {{ if .page.Logo }}<meta property="og:image" content="{{ .page.Logo }}">{{ end }}
     {{ if .page.FavIcon }}<link rel="icon" href="{{ .page.FavIcon }}" />{{ end }}
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://token.dcap.com/v1/client"></script>
-    <script src="https://wallet.dcap.com/v1/client/applepay"></script>
+    <script src="https://token-cert.dcap.com/v1/client"></script>
+    <script src="https://wallet-cert.dcap.com/v1/client/applepay"></script>
   </head>
   <body class="bg-slate-50 text-slate-900 antialiased">
     <div class="max-w-md mx-auto p-4">
@@ -367,9 +367,6 @@
     </script>
   </body>
 </html>
-        DatacapApplePay.init(tokenCallback, webTokenMid ,storeName, applePayMid,(amountCents / 100).toFixed(2))
-        // dont have google pay mid yet
-        // DatacapGooglePay.init(tokenCallback, webTokenMid ,merchantId,googlePayMid,(amountCents / 100).toFixed(2))
     </script>
   </body>
 </html>
