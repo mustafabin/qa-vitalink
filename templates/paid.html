@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -10,8 +10,132 @@
     {{ if .page.Logo }}<meta property="og:image" content="{{ .page.Logo }}">{{ end }}
     {{ if .page.FavIcon }}<link rel="icon" href="{{ .page.FavIcon }}" />{{ end }}
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* CSS Variables for Theme System */
+      :root {
+        /* Light theme (default) */
+        --bg-primary: #f8fafc;
+        --bg-secondary: #ffffff;
+        --bg-tertiary: #f1f5f9;
+        --text-primary: #0f172a;
+        --text-secondary: #64748b;
+        --text-tertiary: #94a3b8;
+        --border-primary: #e2e8f0;
+        --border-secondary: #cbd5e1;
+        --accent-primary: #7c3aed;
+        --accent-hover: #6d28d9;
+        --accent-light: #ede9fe;
+        --success-bg: #dcfce7;
+        --success-text: #166534;
+        --error-bg: #fef2f2;
+        --error-text: #dc2626;
+        --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      }
+      
+      [data-theme="dark"] {
+        /* Dark theme */
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-tertiary: #334155;
+        --text-primary: #f8fafc;
+        --text-secondary: #cbd5e1;
+        --text-tertiary: #94a3b8;
+        --border-primary: #334155;
+        --border-secondary: #475569;
+        --accent-primary: #8b5cf6;
+        --accent-hover: #7c3aed;
+        --accent-light: #4c1d95;
+        --success-bg: #064e3b;
+        --success-text: #6ee7b7;
+        --error-bg: #7f1d1d;
+        --error-text: #fca5a5;
+        --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+      }
+      
+      /* Apply theme colors */
+      body {
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        transition: background-color 0.3s ease, color 0.3s ease;
+      }
+      
+      .bg-slate-50 { background-color: var(--bg-primary) !important; }
+      .bg-white { background-color: var(--bg-secondary) !important; }
+      .bg-slate-100 { background-color: var(--bg-tertiary) !important; }
+      .text-slate-900 { color: var(--text-primary) !important; }
+      .text-slate-600 { color: var(--text-secondary) !important; }
+      .text-slate-500 { color: var(--text-tertiary) !important; }
+      .border-slate-200 { border-color: var(--border-primary) !important; }
+      .border-slate-300 { border-color: var(--border-secondary) !important; }
+      .bg-emerald-100 { background-color: var(--success-bg) !important; }
+      .text-emerald-700 { color: var(--success-text) !important; }
+      .shadow-xl { box-shadow: var(--shadow) !important; }
+      .shadow-sm { box-shadow: var(--shadow-sm) !important; }
+      
+      /* Theme Toggle Styles */
+      .theme-toggle {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        z-index: 1000;
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-primary);
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+      }
+      
+      .theme-toggle:hover {
+        transform: scale(1.05);
+        box-shadow: var(--shadow);
+      }
+      
+      .theme-toggle svg {
+        width: 1.25rem;
+        height: 1.25rem;
+        color: var(--text-secondary);
+        transition: all 0.3s ease;
+      }
+      
+      /* Mobile adjustments */
+      @media (max-width: 640px) {
+        .theme-toggle {
+          top: 0.75rem;
+          right: 0.75rem;
+          width: 2.25rem;
+          height: 2.25rem;
+        }
+        
+        .theme-toggle svg {
+          width: 1rem;
+          height: 1rem;
+        }
+      }
+      
+      /* Smooth transitions for all elements */
+      * {
+        transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+      }
+    </style>
   </head>
   <body class="bg-slate-50 text-slate-900 antialiased">
+    <!-- Theme Toggle -->
+    <button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme">
+      <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+      </svg>
+    </button>
+
          <div class="max-w-md mx-auto p-4" id="page-data" data-created-at-utc="{{ .page.CreatedAt.Format "2006-01-02T15:04:05Z07:00" }}" data-items-json='{{ .page.Items }}'>
       <div class="bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
         {{ if .page.FeatureGraphic }}
@@ -78,6 +202,55 @@
     </div>
 
          <script>
+       // Theme Management
+       function initializeTheme() {
+           const themeToggle = document.getElementById('theme-toggle')
+           const themeIcon = document.getElementById('theme-icon')
+           const html = document.documentElement
+           
+           // Check for saved theme preference or default to system preference
+           const savedTheme = localStorage.getItem('theme')
+           const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+           
+           let currentTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light')
+           
+           // Apply theme
+           function applyTheme(theme) {
+               html.setAttribute('data-theme', theme)
+               localStorage.setItem('theme', theme)
+               
+               // Update icon
+               if (theme === 'dark') {
+                   themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />'
+               } else {
+                   themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />'
+               }
+           }
+           
+           // Toggle theme
+           function toggleTheme() {
+               currentTheme = currentTheme === 'light' ? 'dark' : 'light'
+               applyTheme(currentTheme)
+           }
+           
+           // Listen for system theme changes
+           window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+               if (!localStorage.getItem('theme')) {
+                   currentTheme = e.matches ? 'dark' : 'light'
+                   applyTheme(currentTheme)
+               }
+           })
+           
+           // Apply initial theme
+           applyTheme(currentTheme)
+           
+           // Add click listener
+           themeToggle.addEventListener('click', toggleTheme)
+       }
+
+       // Initialize theme first
+       initializeTheme()
+
        (function () {
          try {
            var el = document.getElementById('page-data')
