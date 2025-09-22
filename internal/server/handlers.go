@@ -1,19 +1,19 @@
 package server
 
 import (
-	"errors"
-	"log"
-	"net/http"
-	"strconv"
-	"strings"
-	"time"
 	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"log"
 	"math/big"
+	"net/http"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
@@ -21,7 +21,6 @@ import (
 	"gorm.io/gorm"
 
 	"vitalink/internal/models"
-	
 )
 
 var pageUIDLetters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
@@ -68,13 +67,11 @@ func grabConfig(token string) (string, error) {
 	return response.MerchantID, nil
 }
 
-
-
 func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 	var req struct {
 		MerchantID  string     `json:"merchant_id"`
 		PageUID     string     `json:"page_uid"`
-		RvcID	   string     `json:"rvc_id"`
+		RvcID       string     `json:"rvc_id"`
 		AmountCents int64      `json:"amount_cents" validate:"required"`
 		Currency    string     `json:"currency"`
 		Title       string     `json:"title"`
@@ -82,21 +79,21 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 		StoreName   string     `json:"store_name"`
 		ExpireAt    *time.Time `json:"expire_at"`
 
-		InvoiceNo             string `json:"invoice_no"`
-		IncludeTip            bool   `json:"include_tip"`
-		AllowedTipPercentages string `json:"allowed_tip_percentages"`
-		PaymentFeeAmount      string `json:"payment_fee_amount"`
-		PaymentFeeDescription string `json:"payment_fee_description"`
-		SurchargeAmount       string `json:"surcharge_amount"`
-		TaxAmount             string `json:"tax_amount"`
+		InvoiceNo             string          `json:"invoice_no"`
+		IncludeTip            bool            `json:"include_tip"`
+		AllowedTipPercentages string          `json:"allowed_tip_percentages"`
+		PaymentFeeAmount      string          `json:"payment_fee_amount"`
+		PaymentFeeDescription string          `json:"payment_fee_description"`
+		SurchargeAmount       string          `json:"surcharge_amount"`
+		TaxAmount             string          `json:"tax_amount"`
 		Items                 json.RawMessage `json:"items"`
-		PaymentTypesAllowed   string `json:"payment_types_allowed"`
-		PublicToken           string `json:"public_token"`
-		ApplePayMid           string `json:"apple_pay_mid"`
-		GooglePayMid          string `json:"google_pay_mid"`
-		FeatureGraphic        string `json:"feature_graphic"`
-		Logo                  string `json:"logo"`
-		FavIcon               string `json:"favicon"`
+		PaymentTypesAllowed   string          `json:"payment_types_allowed"`
+		PublicToken           string          `json:"public_token"`
+		ApplePayMid           string          `json:"apple_pay_mid"`
+		GooglePayMid          string          `json:"google_pay_mid"`
+		FeatureGraphic        string          `json:"feature_graphic"`
+		Logo                  string          `json:"logo"`
+		FavIcon               string          `json:"favicon"`
 	}
 
 	log.Println("Create payment page request received")
@@ -120,7 +117,7 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 		log.Println("api_token", api_token)
 		merchantID, err := grabConfig(api_token)
 		if err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]any{"error": "No merchant ID found and grabbing config failed", "details":err.Error()})
+			return c.JSON(http.StatusBadRequest, map[string]any{"error": "No merchant ID found and grabbing config failed", "details": err.Error()})
 		}
 		req.MerchantID = merchantID
 	}
@@ -135,7 +132,9 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 		req.RvcID = "1" // default to 1 if not provided
 	}
 
-	if req.Currency == "" { req.Currency = "USD" }
+	if req.Currency == "" {
+		req.Currency = "USD"
+	}
 
 	// Validate and normalize items to a JSON string
 	itemsJSON := "[]"
@@ -198,18 +197,20 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 	if err := db.Create(&pp).Error; err != nil {
 		if isUnique(err) {
 			return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-				"error": "payment page exists",
+				"error":   "payment page exists",
 				"details": err.Error(),
 			})
 		}
 		return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-			"error": "create failed",
+			"error":   "create failed",
 			"details": err.Error(),
 		})
 	}
 
 	scheme := "https"
-	if c.Scheme() != "" { scheme = c.Scheme() }
+	if c.Scheme() != "" {
+		scheme = c.Scheme()
+	}
 	host := c.Request().Host
 	base := scheme + "://" + host
 	paymentURL := base + "/p/" + pp.MerchantID + "/" + pp.PageUID
@@ -246,13 +247,14 @@ func handleViewPaymentPage(c echo.Context, db *gorm.DB) error {
 	return c.Render(http.StatusOK, "payment.html", map[string]any{"page": pp})
 }
 
-
 func handleQRPaymentPage(c echo.Context) error {
 	merchantID := c.Param("merchant_id")
 	pageUID := c.Param("page_uid")
 
 	scheme := "https"
-	if c.Scheme() != "" { scheme = c.Scheme() }
+	if c.Scheme() != "" {
+		scheme = c.Scheme()
+	}
 	host := c.Request().Host
 	url := scheme + "://" + host + "/p/" + merchantID + "/" + pageUID
 
@@ -271,62 +273,64 @@ func handleQRPaymentPage(c echo.Context) error {
 }
 
 func isUnique(err error) bool {
-	if err == nil { return false }
+	if err == nil {
+		return false
+	}
 	s := err.Error()
 	return strings.Contains(s, "duplicate key value") || strings.Contains(strings.ToLower(s), "unique")
 }
 
 func markPaymentFulfilled(ctx context.Context, db *gorm.DB, page *models.PaymentPage, dcResp map[string]any) error {
-    if page == nil {
-        return errors.New("nil payment page")
-    }
+	if page == nil {
+		return errors.New("nil payment page")
+	}
 
-    approved := false
-    if v, ok := dcResp["Status"].(string); ok && strings.EqualFold(v, "Approved") {
-        approved = true
-    }
-    if v, ok := dcResp["CmdStatus"].(string); ok && strings.EqualFold(v, "Approved") {
-        approved = true
-    }
-    if !approved {
-        return errors.New("transaction not approved")
-    }
+	approved := false
+	if v, ok := dcResp["Status"].(string); ok && strings.EqualFold(v, "Approved") {
+		approved = true
+	}
+	if v, ok := dcResp["CmdStatus"].(string); ok && strings.EqualFold(v, "Approved") {
+		approved = true
+	}
+	if !approved {
+		return errors.New("transaction not approved")
+	}
 
-    // In case of dupes
-    if page.Status == "paid" {
-        return nil
-    }
+	// In case of dupes
+	if page.Status == "paid" {
+		return nil
+	}
 
-    tx := db.WithContext(ctx).Begin()
-    defer func() {
-        if r := recover(); r != nil {
-            tx.Rollback()
-        }
-    }()
+	tx := db.WithContext(ctx).Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
 
-    if err := tx.Model(page).Updates(map[string]any{
-        "status": "paid",
-        "last4":  dcResp["Last4"],
-        "brand":  dcResp["Brand"],
-    }).Error; err != nil {
-        tx.Rollback()
-        return fmt.Errorf("database update failed: %w", err)
-    }
+	if err := tx.Model(page).Updates(map[string]any{
+		"status": "paid",
+		"last4":  dcResp["Last4"],
+		"brand":  dcResp["Brand"],
+	}).Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("database update failed: %w", err)
+	}
 
-    if err := tx.Commit().Error; err != nil {
-        return fmt.Errorf("transaction commit failed: %w", err)
-    }
+	if err := tx.Commit().Error; err != nil {
+		return fmt.Errorf("transaction commit failed: %w", err)
+	}
 
-    page.Status = "paid"
-    return nil
+	page.Status = "paid"
+	return nil
 }
 func getString(m map[string]any, key string) string {
-    if v, ok := m[key]; ok {
-        if s, ok := v.(string); ok {
-            return s
-        }
-    }
-    return ""
+	if v, ok := m[key]; ok {
+		if s, ok := v.(string); ok {
+			return s
+		}
+	}
+	return ""
 }
 func handleFetchPaymentPageData(c echo.Context, db *gorm.DB) error {
 	merchantID := c.Param("merchant_id")
@@ -344,14 +348,14 @@ func handleFetchPaymentPageData(c echo.Context, db *gorm.DB) error {
 	// Try to fetch updated data from api.vitapay.com
 	client := &http.Client{Timeout: 10 * time.Second}
 	apiURL := fmt.Sprintf("http://localhost:9000/check/%s/%s", merchantID, pageUID)
-	
+
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
 		// Return local data if request creation fails
 		return c.JSON(http.StatusOK, map[string]any{
 			"success": false,
 			"message": "Using local data",
-			"data": pp,
+			"data":    pp,
 		})
 	}
 
@@ -367,7 +371,7 @@ func handleFetchPaymentPageData(c echo.Context, db *gorm.DB) error {
 		return c.JSON(http.StatusOK, map[string]any{
 			"success": false,
 			"message": "Using local data",
-			"data": pp,
+			"data":    pp,
 		})
 	}
 	defer resp.Body.Close()
@@ -378,15 +382,18 @@ func handleFetchPaymentPageData(c echo.Context, db *gorm.DB) error {
 		return c.JSON(http.StatusOK, map[string]any{
 			"success": false,
 			"message": "Using local data",
-			"data": pp,
+			"data":    pp,
 		})
 	}
 
 	// Update local database with fresh data if it's different
-	if apiData.AmountCents != pp.AmountCents || apiData.Status != pp.Status || apiData.Items != pp.Items {
+	if apiData.AmountCents != pp.AmountCents || apiData.Status != pp.Status || apiData.Items != pp.Items ||
+		apiData.IncludeTip != pp.IncludeTip || apiData.AllowedTipPercentages != pp.AllowedTipPercentages {
 		pp.AmountCents = apiData.AmountCents
 		pp.Status = apiData.Status
 		pp.Items = apiData.Items
+		pp.IncludeTip = apiData.IncludeTip
+		pp.AllowedTipPercentages = apiData.AllowedTipPercentages
 		pp.UpdatedAt = time.Now()
 		db.Save(&pp)
 	}
@@ -394,7 +401,7 @@ func handleFetchPaymentPageData(c echo.Context, db *gorm.DB) error {
 	return c.JSON(http.StatusOK, map[string]any{
 		"success": true,
 		"message": "Data updated from API",
-		"data": pp,
+		"data":    pp,
 	})
 }
 
@@ -414,11 +421,12 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	}
 
 	var req struct {
-		DatacapToken string `json:"datacap_token"`
-		Last4 string `json:"last4"`
-		Brand string `json:"brand"`
+		DatacapToken   string `json:"datacap_token"`
+		Last4          string `json:"last4"`
+		Brand          string `json:"brand"`
+		TipAmountCents int64  `json:"tip_amount_cents"`
 	}
-	
+
 	if err := c.Bind(&req); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "invalid request"})
 	}
@@ -434,14 +442,17 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	if page.AmountCents < 1 {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "amount must be at least 0.01"})
 	}
-	amount := fmt.Sprintf("%.2f", float64(page.AmountCents)/100)
+
+	// Calculate total amount including tip
+	totalAmountCents := page.AmountCents + req.TipAmountCents
+	amount := fmt.Sprintf("%.2f", float64(totalAmountCents)/100)
 
 	payload := map[string]string{
 		"Token":        req.DatacapToken,
 		"Amount":       amount,
 		"Tax":          page.TaxAmount,
 		"CustomerCode": page.InvoiceNo, // InvoiceNo
-		"PartialAuth": "Disallow",
+		"PartialAuth":  "Disallow",
 		"CardHolderID": "Allow_V2",
 		"InvoiceNo":    page.InvoiceNo,
 		"MerchantID":   page.MerchantID,
@@ -489,31 +500,46 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	_ = json.Unmarshal(respBytes, &dcResp)
 
 	// Fallback to client-provided metadata if gateway response omits these
-	if dcResp == nil { dcResp = map[string]any{} }
-	if _, ok := dcResp["Last4"]; !ok && strings.TrimSpace(req.Last4) != "" { dcResp["Last4"] = req.Last4 }
-	if _, ok := dcResp["Brand"]; !ok && strings.TrimSpace(req.Brand) != "" { dcResp["Brand"] = req.Brand }
+	if dcResp == nil {
+		dcResp = map[string]any{}
+	}
+	if _, ok := dcResp["Last4"]; !ok && strings.TrimSpace(req.Last4) != "" {
+		dcResp["Last4"] = req.Last4
+	}
+	if _, ok := dcResp["Brand"]; !ok && strings.TrimSpace(req.Brand) != "" {
+		dcResp["Brand"] = req.Brand
+	}
 
 	approved := false
 	message := ""
-	if v, ok := dcResp["Status"].(string); ok && strings.EqualFold(v, "Approved") { approved = true }
-	if v, ok := dcResp["Message"].(string); ok && message == "" { message = v }
-	if message == "" { message = strings.TrimSpace(string(respBytes)) }
+	if v, ok := dcResp["Status"].(string); ok && strings.EqualFold(v, "Approved") {
+		approved = true
+	}
+	if v, ok := dcResp["Message"].(string); ok && message == "" {
+		message = v
+	}
+	if message == "" {
+		message = strings.TrimSpace(string(respBytes))
+	}
 
-	if resp.StatusCode >= 400 { approved = false }
+	if resp.StatusCode >= 400 {
+		approved = false
+	}
 
 	if approved {
 		_ = markPaymentFulfilled(ctx, db, &page, dcResp)
 		return c.JSON(http.StatusOK, map[string]any{
-			"approved":  true,
-			"message":   message,
+			"approved": true,
+			"message":  message,
 		})
 	}
 
 	status := http.StatusBadRequest
-	if resp.StatusCode >= 400 { status = resp.StatusCode }
+	if resp.StatusCode >= 400 {
+		status = resp.StatusCode
+	}
 	return c.JSON(status, map[string]any{
 		"approved": false,
 		"message":  message,
 	})
 }
-

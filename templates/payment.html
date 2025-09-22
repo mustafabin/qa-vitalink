@@ -58,13 +58,41 @@
           <div class="mt-6 rounded-xl bg-slate-50 p-4 border border-slate-200">
             <div class="flex items-center justify-between">
               <span class="text-sm text-slate-600">Amount due</span>
-              <span class="font-mono text-xl font-semibold">{{ formatAmount .page.AmountCents .page.Currency }}</span>
+              <span class="font-mono text-xl font-semibold" id="amount-display">{{ formatAmount .page.AmountCents .page.Currency }}</span>
             </div>
             <div class="mt-2 text-[11px] text-slate-500">
               Page ID: {{ .page.PageUID }}
             </div>
-
           </div>
+
+          {{ if or .page.IncludeTip .page.AllowedTipPercentages }}
+          <div class="mt-6 rounded-xl bg-slate-50 p-4 border border-slate-200">
+            <h3 class="text-sm font-semibold mb-3">Add tip</h3>
+            <div class="space-y-3">
+              <div class="grid grid-cols-3 gap-2" id="tip-percentages">
+                <!-- Tip percentage buttons will be populated by JavaScript -->
+              </div>
+              <div class="flex items-center gap-2">
+                <label for="custom-tip" class="text-sm text-slate-600">Custom tip:</label>
+                <div class="flex-1 flex items-center gap-2">
+                  <span class="text-sm text-slate-500">{{ .page.Currency }}</span>
+                  <input
+                    type="number"
+                    id="custom-tip"
+                    placeholder="0.00"
+                    step="0.01"
+                    min="0"
+                    class="flex-1 h-8 rounded-lg border border-slate-200 px-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600"
+                  />
+                </div>
+              </div>
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-slate-600">Tip amount:</span>
+                <span class="font-mono" id="tip-amount">{{ .page.Currency }}0.00</span>
+              </div>
+            </div>
+          </div>
+          {{ end }}
 
           <div class="mt-6 pt-6 border-t border-dashed border-slate-300">
             <h3 class="text-sm font-semibold mb-3">Payment method</h3>
@@ -215,7 +243,9 @@
       data-apple-pay-mid="{{ .page.ApplePayMid }}"
       data-google-pay-mid="{{ .page.GooglePayMid }}"
       data-created-at-utc="{{ .page.CreatedAt.Format "2006-01-02T15:04:05Z07:00" }}"
-      data-items-json='{{ .page.Items }}'></div>
+      data-items-json='{{ .page.Items }}'
+      data-include-tip="{{ .page.IncludeTip }}"
+      data-allowed-tip-percentages='{{ .page.AllowedTipPercentages }}'></div>
 
     <script>
         // Global variables
@@ -228,8 +258,22 @@
         let applePayMid = el.dataset.applePayMid || ""
         let googlePayMid = el.dataset.googlePayMid || ""
         let webTokenMid = el.dataset.webtokenMid || ""
+        let includeTip = el.dataset.includeTip === "true"
+        let allowedTipPercentages = []
+        let selectedTipAmount = 0
+        let totalAmountCents = amountCents
 
         let chargeUrl = "/api/payments/" + merchantId + "/" + pageUid + "/charge"
+
+        // Parse allowed tip percentages
+        try {
+            const rawPercentages = JSON.parse(el.dataset.allowedTipPercentages || "[]")
+            // Convert from whole numbers (15, 18, 20) to decimals (0.15, 0.18, 0.20)
+            allowedTipPercentages = rawPercentages.map(p => p / 100)
+        } catch (e) {
+            console.error("Error parsing tip percentages:", e)
+            allowedTipPercentages = [0.15, 0.18, 0.20] // Default fallback
+        }
 
         // Function to fetch updated payment page data
         async function fetchPaymentPageData() {
@@ -256,9 +300,23 @@
         function updatePageData(data) {
             // Update amount
             amountCents = data.amount_cents || amountCents
-            const amountElement = document.querySelector('.font-mono.text-xl.font-semibold')
+            const amountElement = document.getElementById('amount-display')
             if (amountElement) {
                 amountElement.textContent = formatAmount(amountCents, currency)
+            }
+
+            // Update tip-related data
+            if (data.include_tip !== undefined) {
+                includeTip = data.include_tip
+            }
+            if (data.allowed_tip_percentages) {
+                try {
+                    const rawPercentages = JSON.parse(data.allowed_tip_percentages)
+                    // Convert from whole numbers (15, 18, 20) to decimals (0.15, 0.18, 0.20)
+                    allowedTipPercentages = rawPercentages.map(p => p / 100)
+                } catch (e) {
+                    console.error("Error parsing updated tip percentages:", e)
+                }
             }
 
             // Update items if they exist
@@ -287,9 +345,16 @@
                 }
             }
 
-            // Update Apple Pay amount if available
+            // Reinitialize tip section if tip settings changed
+            if (includeTip || allowedTipPercentages.length > 0) {
+                initializeTipSection()
+                updateTipDisplay()
+            }
+
+            // Update Apple Pay amount if available (use total amount including tip)
             if (window.DatacapApplePay && DatacapApplePay.init) {
-                DatacapApplePay.init(tokenCallback, webTokenMid, storeName, applePayMid, (amountCents / 100).toFixed(2))
+                const totalAmount = (includeTip || allowedTipPercentages.length > 0) ? totalAmountCents : amountCents
+                DatacapApplePay.init(tokenCallback, webTokenMid, storeName, applePayMid, (totalAmount / 100).toFixed(2))
             }
         }
 
@@ -310,6 +375,95 @@
         function formatAmount(cents, currency) {
             const amount = (cents / 100).toFixed(2)
             return currency === 'USD' ? `$${amount}` : `${amount} ${currency}`
+        }
+
+        // Tip calculation functions
+        function calculateTipAmount(tipPercentage) {
+            return Math.round(amountCents * tipPercentage)
+        }
+
+        function updateTipDisplay() {
+            const tipAmountElement = document.getElementById('tip-amount')
+            const amountDisplayElement = document.getElementById('amount-display')
+            
+            if (tipAmountElement) {
+                tipAmountElement.textContent = formatAmount(selectedTipAmount, currency)
+            }
+            
+            if (amountDisplayElement) {
+                totalAmountCents = amountCents + selectedTipAmount
+                amountDisplayElement.textContent = formatAmount(totalAmountCents, currency)
+            }
+        }
+
+        function initializeTipSection() {
+            // Show tip section if includeTip is true OR if there are allowed tip percentages
+            if (!includeTip && allowedTipPercentages.length === 0) return
+
+            const tipPercentagesContainer = document.getElementById('tip-percentages')
+            if (!tipPercentagesContainer) return
+
+            // Create tip percentage buttons
+            tipPercentagesContainer.innerHTML = allowedTipPercentages.map(percentage => {
+                const percentageText = Math.round(percentage * 100) + '%'
+                return `<button 
+                    type="button" 
+                    class="tip-percentage-btn h-10 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600"
+                    data-percentage="${percentage}">
+                    ${percentageText}
+                </button>`
+            }).join('')
+
+            // Add event listeners to tip percentage buttons
+            tipPercentagesContainer.querySelectorAll('.tip-percentage-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    tipPercentagesContainer.querySelectorAll('.tip-percentage-btn').forEach(b => {
+                        b.classList.remove('bg-violet-600', 'text-white')
+                        b.classList.add('bg-white', 'text-slate-700')
+                    })
+                    
+                    // Add active class to clicked button
+                    this.classList.remove('bg-white', 'text-slate-700')
+                    this.classList.add('bg-violet-600', 'text-white')
+                    
+                    // Calculate and update tip
+                    const percentage = parseFloat(this.dataset.percentage)
+                    selectedTipAmount = calculateTipAmount(percentage)
+                    updateTipDisplay()
+                    
+                    // Clear custom tip input
+                    const customTipInput = document.getElementById('custom-tip')
+                    if (customTipInput) {
+                        customTipInput.value = ''
+                    }
+                })
+            })
+
+            // Default to middle option on load
+            if (allowedTipPercentages.length > 0) {
+                const middleIndex = Math.floor(allowedTipPercentages.length / 2)
+                const middleButton = tipPercentagesContainer.children[middleIndex]
+                if (middleButton) {
+                    middleButton.click() // Trigger the click event to select the middle option
+                }
+            }
+
+            // Add event listener to custom tip input
+            const customTipInput = document.getElementById('custom-tip')
+            if (customTipInput) {
+                customTipInput.addEventListener('input', function() {
+                    const customAmount = parseFloat(this.value) || 0
+                    selectedTipAmount = Math.round(customAmount * 100) // Convert to cents
+                    updateTipDisplay()
+                    
+                    // Remove active class from percentage buttons
+                    tipPercentagesContainer.querySelectorAll('.tip-percentage-btn').forEach(b => {
+                        b.classList.remove('bg-violet-600', 'text-white')
+                        b.classList.add('bg-white', 'text-slate-700')
+                    })
+                })
+            }
         }
 
         // Initialize the page
@@ -354,6 +508,9 @@
                     }
                 }
             } catch (_) {}
+
+            // Initialize tip section
+            initializeTipSection()
         })
 
         // Payment handling functions
@@ -376,7 +533,12 @@
           return fetch(chargeUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ datacap_token: datacapToken, last4: last4, brand: brand }),
+            body: JSON.stringify({ 
+              datacap_token: datacapToken, 
+              last4: last4, 
+              brand: brand,
+              tip_amount_cents: selectedTipAmount
+            }),
           }).then(async function (res) {
             let body = {}
             try {
