@@ -328,6 +328,76 @@ func getString(m map[string]any, key string) string {
     }
     return ""
 }
+func handleFetchPaymentPageData(c echo.Context, db *gorm.DB) error {
+	merchantID := c.Param("merchant_id")
+	pageUID := c.Param("page_uid")
+
+	// First get the local payment page data
+	var pp models.PaymentPage
+	err := db.First(&pp, "merchant_id = ? AND page_uid = ?", merchantID, pageUID).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return c.JSON(http.StatusNotFound, map[string]any{"error": "payment page not found"})
+	} else if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]any{"error": "database error"})
+	}
+
+	// Try to fetch updated data from api.vitapay.com
+	client := &http.Client{Timeout: 10 * time.Second}
+	apiURL := fmt.Sprintf("http://localhost:9000/check/%s/%s", merchantID, pageUID)
+	
+	req, err := http.NewRequest("GET", apiURL, nil)
+	if err != nil {
+		// Return local data if request creation fails
+		return c.JSON(http.StatusOK, map[string]any{
+			"success": false,
+			"message": "Using local data",
+			"data": pp,
+		})
+	}
+
+	req.Header.Set("User-Agent", "VitaPay/1.0")
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil || resp.StatusCode != http.StatusOK {
+		// Return local data if API call fails
+		if resp != nil {
+			resp.Body.Close()
+		}
+		return c.JSON(http.StatusOK, map[string]any{
+			"success": false,
+			"message": "Using local data",
+			"data": pp,
+		})
+	}
+	defer resp.Body.Close()
+
+	var apiData models.PaymentPage
+	if err := json.NewDecoder(resp.Body).Decode(&apiData); err != nil {
+		// Return local data if parsing fails
+		return c.JSON(http.StatusOK, map[string]any{
+			"success": false,
+			"message": "Using local data",
+			"data": pp,
+		})
+	}
+
+	// Update local database with fresh data if it's different
+	if apiData.AmountCents != pp.AmountCents || apiData.Status != pp.Status || apiData.Items != pp.Items {
+		pp.AmountCents = apiData.AmountCents
+		pp.Status = apiData.Status
+		pp.Items = apiData.Items
+		pp.UpdatedAt = time.Now()
+		db.Save(&pp)
+	}
+
+	return c.JSON(http.StatusOK, map[string]any{
+		"success": true,
+		"message": "Data updated from API",
+		"data": pp,
+	})
+}
+
 func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	merchantID := c.Param("merchant_id")
 	pageUID := c.Param("page_uid")
