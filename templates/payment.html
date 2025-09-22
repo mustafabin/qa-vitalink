@@ -43,8 +43,8 @@
         --bg-secondary: #1e293b;
         --bg-tertiary: #334155;
         --text-primary: #f8fafc;
-        --text-secondary: #cbd5e1;
-        --text-tertiary: #94a3b8;
+        --text-secondary: #e2e8f0;
+        --text-tertiary: #cbd5e1;
         --border-primary: #334155;
         --border-secondary: #475569;
         --accent-primary: #8b5cf6;
@@ -71,6 +71,7 @@
       .text-slate-900 { color: var(--text-primary) !important; }
       .text-slate-600 { color: var(--text-secondary) !important; }
       .text-slate-500 { color: var(--text-tertiary) !important; }
+      .text-slate-700 { color: var(--text-secondary) !important; }
       .border-slate-200 { border-color: var(--border-primary) !important; }
       .border-slate-300 { border-color: var(--border-secondary) !important; }
       .bg-violet-600 { background-color: var(--accent-primary) !important; }
@@ -80,6 +81,19 @@
       .text-red-700 { color: var(--error-text) !important; }
       .shadow-xl { box-shadow: var(--shadow) !important; }
       .shadow-sm { box-shadow: var(--shadow-sm) !important; }
+      
+      /* Additional text color overrides for better dark mode support */
+      .font-medium { color: var(--text-primary) !important; }
+      .font-semibold { color: var(--text-primary) !important; }
+      .text-sm { color: var(--text-secondary) !important; }
+      .text-xs { color: var(--text-tertiary) !important; }
+      
+      /* Theme-aware logo display */
+      .logo-light { display: block; }
+      .logo-dark { display: none; }
+      
+      [data-theme="dark"] .logo-light { display: none; }
+      [data-theme="dark"] .logo-dark { display: block; }
       
       /* Theme Toggle Styles */
       .theme-toggle {
@@ -160,9 +174,14 @@
         </div>
         {{ end }}
         <div class="px-6 py-6">
-          {{ if .page.Logo }}
+          {{ if or .page.Logo .page.Logo2 }}
           <div class="flex justify-center mb-4">
-            <img src="{{ .page.Logo }}" alt="Logo" class="h-16 w-auto" />
+            {{ if .page.Logo }}
+            <img src="{{ .page.Logo }}" alt="Logo" class="h-16 w-auto logo-light" />
+            {{ end }}
+            {{ if .page.Logo2 }}
+            <img src="{{ .page.Logo2 }}" alt="Logo Dark" class="h-16 w-auto logo-dark" />
+            {{ end }}
           </div>
           {{ end }}
           <div class="text-center">

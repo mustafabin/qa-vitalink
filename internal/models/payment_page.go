@@ -31,6 +31,7 @@ type PaymentPage struct {
 	GooglePayMid        string `json:"google_pay_mid"`
 	FeatureGraphic      string `json:"feature_graphic"`
 	Logo                string `json:"logo"`
+	Logo2               string `json:"logo2"`
 	FavIcon             string `json:"favicon"`
 
 	Last4 string `json:"last4" default:""`

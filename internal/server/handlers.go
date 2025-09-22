@@ -93,6 +93,7 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 		GooglePayMid          string          `json:"google_pay_mid"`
 		FeatureGraphic        string          `json:"feature_graphic"`
 		Logo                  string          `json:"logo"`
+		Logo2                 string          `json:"logo2"`
 		FavIcon               string          `json:"favicon"`
 	}
 
@@ -191,6 +192,7 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 		GooglePayMid:          req.GooglePayMid,
 		FeatureGraphic:        req.FeatureGraphic,
 		Logo:                  req.Logo,
+		Logo2:                 req.Logo2,
 		FavIcon:               req.FavIcon,
 	}
 
