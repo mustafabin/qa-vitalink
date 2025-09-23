@@ -349,7 +349,7 @@ func handleFetchPaymentPageData(c echo.Context, db *gorm.DB) error {
 
 	// Try to fetch updated data from api.vitapay.com
 	client := &http.Client{Timeout: 10 * time.Second}
-	apiURL := fmt.Sprintf("http://localhost:9000/check/%s/%s", merchantID, pageUID)
+	apiURL := fmt.Sprintf("https://api.vitapay.com/check/%s/%s", merchantID, pageUID)
 
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
