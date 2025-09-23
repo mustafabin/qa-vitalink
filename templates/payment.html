@@ -261,7 +261,7 @@
 
               <label
                 id="method-apple-wrapper"
-                class="hidden flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border border-slate-200 rounded-lg cursor-pointer bg-white">
+                class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 border border-slate-200 rounded-lg cursor-pointer bg-white">
                 <div class="flex items-center gap-3">
                   <input type="radio" name="method" id="method-apple" value="apple" class="h-5 w-5 accent-violet-600" />
                   <span class="flex items-center gap-2">
@@ -502,6 +502,12 @@
                 const totalAmount = (includeTip || allowedTipPercentages.length > 0) ? totalAmountCents : amountCents
                 DatacapApplePay.init(tokenCallback, webTokenMid, storeName, applePayMid, (totalAmount / 100).toFixed(2))
             }
+            
+            // Reinitialize Apple Pay button if Apple Pay method is selected
+            if (methodApple && methodApple.checked) {
+                const totalAmount = (includeTip || allowedTipPercentages.length > 0) ? totalAmountCents : amountCents
+                DatacapApplePay.init(tokenCallback, webTokenMid, storeName, applePayMid, (totalAmount / 100).toFixed(2))
+            }
         }
 
         // Function to hide loading overlay
@@ -539,6 +545,11 @@
             if (amountDisplayElement) {
                 totalAmountCents = amountCents + selectedTipAmount
                 amountDisplayElement.textContent = formatAmount(totalAmountCents, currency)
+            }
+            
+            // Update Apple Pay amount if Apple Pay method is selected
+            if (methodApple && methodApple.checked && window.DatacapApplePay && DatacapApplePay.init) {
+                DatacapApplePay.init(tokenCallback, webTokenMid, storeName, applePayMid, (totalAmountCents / 100).toFixed(2))
             }
         }
 
@@ -820,7 +831,32 @@
         let methodApple = document.getElementById("method-apple")
         let methodAppleWrapper = document.getElementById("method-apple-wrapper")
         let manualSection = document.getElementById("manual-section")
-        DatacapApplePay.init(tokenCallback, webTokenMid ,storeName, applePayMid,(amountCents / 100).toFixed(2))
+        let applePaySection = document.getElementById("apple-pay-section")
+        
+        // Function to toggle between payment methods
+        function togglePaymentMethod() {
+            if (methodCredit.checked) {
+                // Show manual payment form, hide Apple Pay
+                manualSection.style.display = 'block'
+                applePaySection.style.display = 'none'
+            } else if (methodApple.checked) {
+                // Hide manual payment form, show Apple Pay
+                manualSection.style.display = 'none'
+                applePaySection.style.display = 'block'
+            }
+        }
+        
+        // Add event listeners to radio buttons
+        methodCredit.addEventListener('change', togglePaymentMethod)
+        methodApple.addEventListener('change', togglePaymentMethod)
+        
+        // Initialize Apple Pay with total amount (including tip)
+        const totalAmount = (includeTip || allowedTipPercentages.length > 0) ? totalAmountCents : amountCents
+        DatacapApplePay.init(tokenCallback, webTokenMid ,storeName, applePayMid,(totalAmount / 100).toFixed(2))
+        
+        // Set initial state (default to credit card)
+        togglePaymentMethod()
+        
         // dont have google pay mid yet
         // DatacapGooglePay.init(tokenCallback, webTokenMid ,merchantId,googlePayMid,(amountCents / 100).toFixed(2))
     </script>
