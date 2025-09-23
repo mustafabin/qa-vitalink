@@ -249,7 +249,7 @@
                   <input type="radio" name="method" id="method-credit" value="credit" checked class="h-5 w-5 accent-violet-600" />
                   <span class="font-medium">Credit Card</span>
                 </div>
-                <div class="flex items-center justify-center gap-1 flex-wrap sm:justify-end">
+                <div class="flex items-center justify-center gap-1 flex-wrap sm:ml-auto">
                   <div class="w-7 h-4 rounded bg-blue-600 text-white text-[8px] font-bold flex items-center justify-center">VISA</div>
                   <div class="w-7 h-4 rounded relative flex items-center justify-center">
                     <div class="w-2 h-2 rounded-full bg-red-500 opacity-90 absolute left-0.5"></div>
@@ -273,7 +273,6 @@
                     <span class="font-medium">Apple Pay</span>
                   </span>
                 </div>
-                <div class="sm:ml-auto"></div>
               </label>
             </div>
           </div>
@@ -372,7 +371,7 @@
         </div> -->
       </div>
 
-      <div class="mt-6 text-center">
+      <div class="mt-6 mb-6 text-center">
         <p class="text-xs text-slate-600">Share this page</p>
         <img class="mx-auto mt-3 rounded-lg border border-slate-200 shadow-sm" src="/qr/{{ .page.MerchantID }}/{{ .page.PageUID }}" alt="Share QR code" />
       </div>
