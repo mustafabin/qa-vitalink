@@ -78,8 +78,11 @@
       /* Additional text color overrides for better dark mode support */
       .font-medium { color: var(--text-primary) !important; }
       .font-semibold { color: var(--text-primary) !important; }
-      .text-sm { color: var(--text-primary) !important; }
       .text-xs { color: var(--text-tertiary) !important; }
+      
+      /* Specific overrides for items list to ensure proper visibility */
+      #items_list .text-sm { color: var(--text-secondary) !important; }
+      #items_list .font-medium { color: var(--text-primary) !important; }
       
       /* Theme-aware logo display */
       .logo-light { display: block; }

@@ -95,6 +95,7 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 		Logo                  string          `json:"logo"`
 		Logo2                 string          `json:"logo2"`
 		FavIcon               string          `json:"favicon"`
+		Environment           string          `json:"environment"`
 	}
 
 	log.Println("Create payment page request received")
@@ -194,6 +195,7 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 		Logo:                  req.Logo,
 		Logo2:                 req.Logo2,
 		FavIcon:               req.FavIcon,
+		Environment:           req.Environment,
 	}
 
 	if err := db.Create(&pp).Error; err != nil {

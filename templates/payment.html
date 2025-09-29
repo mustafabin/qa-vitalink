@@ -10,8 +10,13 @@
     {{ if .page.Logo }}<meta property="og:image" content="{{ .page.Logo }}">{{ end }}
     {{ if .page.FavIcon }}<link rel="icon" href="{{ .page.FavIcon }}" />{{ end }}
     <script src="https://cdn.tailwindcss.com"></script>
+    {{ if eq .page.Environment "CERT" }}
+    <script src="https://token-cert.dcap.com/v1/client"></script>
+    <script src="https://wallet-cert.dcap.com/v1/client/applepay"></script>
+    {{ else }}
     <script src="https://token.dcap.com/v1/client"></script>
     <script src="https://wallet.dcap.com/v1/client/applepay"></script>
+    {{ end }}
     <style>
       .hidden-content { display: none; }
       
@@ -639,6 +644,12 @@
           <div id="apple-pay-section-desktop" class="mt-3">
             <div id="apple-pay-button-desktop" class="mt-2"></div>
             <p class="text-sm text-slate-500 mt-2">Not seeing Apple Pay? Use Safari on iOS 10+ or macOS 10.12+ with an active wallet.</p>
+          </div>
+
+          <!-- QR Code Section -->
+          <div class="mt-6 mb-6 text-center">
+            <p class="text-xs text-slate-600">Share this page</p>
+            <img class="mx-auto mt-3 rounded-lg border border-slate-200 shadow-sm" src="/qr/{{ .page.MerchantID }}/{{ .page.PageUID }}" alt="Share QR code" />
           </div>
         </div>
       </div>

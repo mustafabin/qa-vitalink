@@ -33,6 +33,7 @@ type PaymentPage struct {
 	Logo                string `json:"logo"`
 	Logo2               string `json:"logo2"`
 	FavIcon             string `json:"favicon"`
+	Environment         string `json:"environment" gorm:"default:PROD"`
 
 	Last4 string `json:"last4" default:""`
 	Brand string `json:"brand" default:""`
