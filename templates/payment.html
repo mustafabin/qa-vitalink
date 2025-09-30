@@ -244,24 +244,18 @@
                 <span class="text-sm text-slate-600">Subtotal</span>
                 <span class="font-mono text-sm" id="subtotal-display">{{ formatAmount .page.AmountCents .page.Currency }}</span>
               </div>
-              {{ if .page.TaxAmount }}
               <div class="flex items-center justify-between">
                 <span class="text-sm text-slate-600">Tax</span>
-                <span class="font-mono text-sm" id="tax-display">{{ .page.Currency }}{{ .page.TaxAmount }}</span>
+                <span class="font-mono text-sm" id="tax-display">{{ if .page.TaxAmount }}{{ .page.Currency }}{{ .page.TaxAmount }}{{ else }}{{ .page.Currency }}0.00{{ end }}</span>
               </div>
-              {{ end }}
-              {{ if .page.SurchargeAmount }}
               <div class="flex items-center justify-between">
                 <span class="text-sm text-slate-600">Surcharge</span>
-                <span class="font-mono text-sm" id="surcharge-display">{{ .page.Currency }}{{ .page.SurchargeAmount }}</span>
+                <span class="font-mono text-sm" id="surcharge-display">{{ if .page.SurchargeAmount }}{{ .page.Currency }}{{ .page.SurchargeAmount }}{{ else }}{{ .page.Currency }}0.00{{ end }}</span>
               </div>
-              {{ end }}
-              {{ if .page.IncludeTip }}
               <div class="flex items-center justify-between">
                 <span class="text-sm text-slate-600">Tip</span>
                 <span class="font-mono text-sm" id="tip-amount">{{ .page.Currency }}0.00</span>
               </div>
-              {{ end }}
               <div class="border-t border-slate-200 pt-2">
                 <div class="flex items-center justify-between">
                   <span class="text-sm font-semibold text-slate-700">Amount due</span>
@@ -520,24 +514,18 @@
                 <span class="text-sm text-slate-600">Subtotal</span>
                 <span class="font-mono text-sm" id="subtotal-display-desktop">{{ formatAmount .page.AmountCents .page.Currency }}</span>
               </div>
-              {{ if .page.TaxAmount }}
               <div class="flex items-center justify-between">
                 <span class="text-sm text-slate-600">Tax</span>
-                <span class="font-mono text-sm" id="tax-display-desktop">{{ .page.Currency }}{{ .page.TaxAmount }}</span>
+                <span class="font-mono text-sm" id="tax-display-desktop">{{ if .page.TaxAmount }}{{ .page.Currency }}{{ .page.TaxAmount }}{{ else }}{{ .page.Currency }}0.00{{ end }}</span>
               </div>
-              {{ end }}
-              {{ if .page.SurchargeAmount }}
               <div class="flex items-center justify-between">
                 <span class="text-sm text-slate-600">Surcharge</span>
-                <span class="font-mono text-sm" id="surcharge-display-desktop">{{ .page.Currency }}{{ .page.SurchargeAmount }}</span>
+                <span class="font-mono text-sm" id="surcharge-display-desktop">{{ if .page.SurchargeAmount }}{{ .page.Currency }}{{ .page.SurchargeAmount }}{{ else }}{{ .page.Currency }}0.00{{ end }}</span>
               </div>
-              {{ end }}
-              {{ if .page.IncludeTip }}
               <div class="flex items-center justify-between">
                 <span class="text-sm text-slate-600">Tip</span>
                 <span class="font-mono text-sm" id="tip-amount-desktop">{{ .page.Currency }}0.00</span>
               </div>
-              {{ end }}
               <div class="border-t border-slate-200 pt-2">
                 <div class="flex items-center justify-between">
                   <span class="text-sm font-semibold text-slate-700">Amount due</span>
