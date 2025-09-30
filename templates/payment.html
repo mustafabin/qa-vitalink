@@ -256,6 +256,12 @@
                 <span class="font-mono text-sm" id="surcharge-display">{{ .page.Currency }}{{ .page.SurchargeAmount }}</span>
               </div>
               {{ end }}
+              {{ if .page.IncludeTip }}
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-slate-600">Tip</span>
+                <span class="font-mono text-sm" id="tip-amount">{{ .page.Currency }}0.00</span>
+              </div>
+              {{ end }}
               <div class="border-t border-slate-200 pt-2">
                 <div class="flex items-center justify-between">
                   <span class="text-sm font-semibold text-slate-700">Amount due</span>
@@ -524,6 +530,12 @@
               <div class="flex items-center justify-between">
                 <span class="text-sm text-slate-600">Surcharge</span>
                 <span class="font-mono text-sm" id="surcharge-display-desktop">{{ .page.Currency }}{{ .page.SurchargeAmount }}</span>
+              </div>
+              {{ end }}
+              {{ if .page.IncludeTip }}
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-slate-600">Tip</span>
+                <span class="font-mono text-sm" id="tip-amount-desktop">{{ .page.Currency }}0.00</span>
               </div>
               {{ end }}
               <div class="border-t border-slate-200 pt-2">
@@ -892,7 +904,7 @@
             const amountDisplayElement = document.getElementById('amount-display')
             const amountDisplayElementDesktop = document.getElementById('amount-display-desktop')
             
-            // Update subtotal (base amount without tip)
+            // Update subtotal (base amount without tax, surcharge, or tip)
             if (subtotalElement) {
                 subtotalElement.textContent = formatAmount(amountCents, currency)
             }
@@ -900,15 +912,39 @@
                 subtotalElementDesktop.textContent = formatAmount(amountCents, currency)
             }
             
-            // Update total amount (including tip if applicable)
+            // Calculate total: subtotal + tax + surcharge + tip
+            let totalCents = amountCents + selectedTipAmount
+            
+            // Add tax if present
+            const taxElement = document.getElementById('tax-display')
+            if (taxElement && taxElement.textContent) {
+                const taxText = taxElement.textContent.replace(currency, '').trim()
+                const taxCents = Math.round(parseFloat(taxText) * 100)
+                if (!isNaN(taxCents)) {
+                    totalCents += taxCents
+                }
+            }
+            
+            // Add surcharge if present
+            const surchargeElement = document.getElementById('surcharge-display')
+            if (surchargeElement && surchargeElement.textContent) {
+                const surchargeText = surchargeElement.textContent.replace(currency, '').trim()
+                const surchargeCents = Math.round(parseFloat(surchargeText) * 100)
+                if (!isNaN(surchargeCents)) {
+                    totalCents += surchargeCents
+                }
+            }
+            
+            // Update total amount
             if (amountDisplayElement) {
-                totalAmountCents = amountCents + selectedTipAmount
-                amountDisplayElement.textContent = formatAmount(totalAmountCents, currency)
+                amountDisplayElement.textContent = formatAmount(totalCents, currency)
             }
             if (amountDisplayElementDesktop) {
-                totalAmountCents = amountCents + selectedTipAmount
-                amountDisplayElementDesktop.textContent = formatAmount(totalAmountCents, currency)
+                amountDisplayElementDesktop.textContent = formatAmount(totalCents, currency)
             }
+            
+            // Update global total for Apple Pay
+            totalAmountCents = totalCents
         }
 
         function initializeTipSection() {
