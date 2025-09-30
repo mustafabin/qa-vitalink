@@ -177,7 +177,7 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 		Description: req.Description,
 		StoreName:   req.StoreName,
 		Status:      "open",
-		ExpireAt:    nil,
+		ExpireAt:    req.ExpireAt,
 
 		InvoiceNo:             req.InvoiceNo,
 		IncludeTip:            req.IncludeTip,
@@ -399,7 +399,15 @@ func handleFetchPaymentPageData(c echo.Context, db *gorm.DB) error {
 		pp.IncludeTip = apiData.IncludeTip
 		pp.AllowedTipPercentages = apiData.AllowedTipPercentages
 		pp.UpdatedAt = time.Now()
-		db.Save(&pp)
+		// Use selective update to avoid overwriting ExpireAt
+		db.Model(&pp).Updates(map[string]any{
+			"amount_cents":            pp.AmountCents,
+			"status":                  pp.Status,
+			"items":                   pp.Items,
+			"include_tip":             pp.IncludeTip,
+			"allowed_tip_percentages": pp.AllowedTipPercentages,
+			"updated_at":              pp.UpdatedAt,
+		})
 	}
 
 	return c.JSON(http.StatusOK, map[string]any{
