@@ -767,6 +767,29 @@
             if (amountElement) {
                 amountElement.textContent = formatAmount(amountCents, currency)
             }
+            // Update desktop amount
+            const amountElementDesktop = document.getElementById('amount-display-desktop')
+            if (amountElementDesktop) {
+                amountElementDesktop.textContent = formatAmount(amountCents, currency)
+            }
+
+            // Update Tax and Surcharge if provided by API
+            try {
+                if (data.tax_amount !== undefined && data.tax_amount !== null) {
+                    const taxText = String(data.tax_amount)
+                    const taxEl = document.getElementById('tax-display')
+                    const taxElDesktop = document.getElementById('tax-display-desktop')
+                    if (taxEl) taxEl.textContent = `${currency}${taxText}`
+                    if (taxElDesktop) taxElDesktop.textContent = `${currency}${taxText}`
+                }
+                if (data.surcharge_amount !== undefined && data.surcharge_amount !== null) {
+                    const surText = String(data.surcharge_amount)
+                    const surEl = document.getElementById('surcharge-display')
+                    const surElDesktop = document.getElementById('surcharge-display-desktop')
+                    if (surEl) surEl.textContent = `${currency}${surText}`
+                    if (surElDesktop) surElDesktop.textContent = `${currency}${surText}`
+                }
+            } catch (_) {}
 
             // Update tip-related data
             if (data.include_tip !== undefined) {
@@ -906,8 +929,13 @@
             // Add tax if present
             const taxElement = document.getElementById('tax-display')
             if (taxElement && taxElement.textContent) {
-                const taxText = taxElement.textContent.replace(currency, '').trim()
-                const taxCents = Math.round(parseFloat(taxText) * 100)
+                const taxText = taxElement.textContent
+                  .replace(currency, '')
+                  .replace('$', '')
+                  .replace(/,/g, '')
+                  .trim()
+                const taxNumber = parseFloat(taxText)
+                const taxCents = Math.round((isNaN(taxNumber) ? 0 : taxNumber) * 100)
                 if (!isNaN(taxCents)) {
                     totalCents += taxCents
                 }
@@ -916,8 +944,13 @@
             // Add surcharge if present
             const surchargeElement = document.getElementById('surcharge-display')
             if (surchargeElement && surchargeElement.textContent) {
-                const surchargeText = surchargeElement.textContent.replace(currency, '').trim()
-                const surchargeCents = Math.round(parseFloat(surchargeText) * 100)
+                const surchargeText = surchargeElement.textContent
+                  .replace(currency, '')
+                  .replace('$', '')
+                  .replace(/,/g, '')
+                  .trim()
+                const surchargeNumber = parseFloat(surchargeText)
+                const surchargeCents = Math.round((isNaN(surchargeNumber) ? 0 : surchargeNumber) * 100)
                 if (!isNaN(surchargeCents)) {
                     totalCents += surchargeCents
                 }
