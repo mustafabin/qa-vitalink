@@ -177,7 +177,7 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 		Description: req.Description,
 		StoreName:   req.StoreName,
 		Status:      "open",
-		ExpireAt:    req.ExpireAt,
+		ExpireAt:    nil,
 
 		InvoiceNo:             req.InvoiceNo,
 		IncludeTip:            req.IncludeTip,
@@ -454,7 +454,6 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	payload := map[string]string{
 		"Token":        req.DatacapToken,
 		"Amount":       amount,
-		"Tax":          page.TaxAmount,
 		"CustomerCode": page.InvoiceNo, // InvoiceNo
 		"PartialAuth":  "Disallow",
 		"CardHolderID": "Allow_V2",

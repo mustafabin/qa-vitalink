@@ -242,20 +242,22 @@
             <div class="space-y-2">
               <div class="flex items-center justify-between">
                 <span class="text-sm text-slate-600">Subtotal</span>
-                <span class="font-mono text-sm" id="subtotal-display">{{ formatAmount .page.AmountCents .page.Currency }}</span>
+                <span class="font-mono text-sm" id="subtotal-display">{{ .page.Currency }}0.00</span>
               </div>
               <div class="flex items-center justify-between">
                 <span class="text-sm text-slate-600">Tax</span>
-                <span class="font-mono text-sm" id="tax-display">{{ if .page.TaxAmount }}{{ .page.Currency }}{{ .page.TaxAmount }}{{ else }}{{ .page.Currency }}0.00{{ end }}</span>
+                <span class="font-mono text-sm" id="tax-display">{{ formatAmountString .page.TaxAmount .page.Currency }}</span>
               </div>
               <div class="flex items-center justify-between">
                 <span class="text-sm text-slate-600">Surcharge</span>
-                <span class="font-mono text-sm" id="surcharge-display">{{ if .page.SurchargeAmount }}{{ .page.Currency }}{{ .page.SurchargeAmount }}{{ else }}{{ .page.Currency }}0.00{{ end }}</span>
+                <span class="font-mono text-sm" id="surcharge-display">{{ formatAmountString .page.SurchargeAmount .page.Currency }}</span>
               </div>
+              {{ if .page.IncludeTip }}
               <div class="flex items-center justify-between">
                 <span class="text-sm text-slate-600">Tip</span>
                 <span class="font-mono text-sm" id="tip-amount">{{ .page.Currency }}0.00</span>
               </div>
+              {{ end }}
               <div class="border-t border-slate-200 pt-2">
                 <div class="flex items-center justify-between">
                   <span class="text-sm font-semibold text-slate-700">Amount due</span>
@@ -512,20 +514,22 @@
             <div class="space-y-2">
               <div class="flex items-center justify-between">
                 <span class="text-sm text-slate-600">Subtotal</span>
-                <span class="font-mono text-sm" id="subtotal-display-desktop">{{ formatAmount .page.AmountCents .page.Currency }}</span>
+                <span class="font-mono text-sm" id="subtotal-display-desktop">{{ .page.Currency }}0.00</span>
               </div>
               <div class="flex items-center justify-between">
                 <span class="text-sm text-slate-600">Tax</span>
-                <span class="font-mono text-sm" id="tax-display-desktop">{{ if .page.TaxAmount }}{{ .page.Currency }}{{ .page.TaxAmount }}{{ else }}{{ .page.Currency }}0.00{{ end }}</span>
+                <span class="font-mono text-sm" id="tax-display-desktop">{{ formatAmountString .page.TaxAmount .page.Currency }}</span>
               </div>
               <div class="flex items-center justify-between">
                 <span class="text-sm text-slate-600">Surcharge</span>
-                <span class="font-mono text-sm" id="surcharge-display-desktop">{{ if .page.SurchargeAmount }}{{ .page.Currency }}{{ .page.SurchargeAmount }}{{ else }}{{ .page.Currency }}0.00{{ end }}</span>
+                <span class="font-mono text-sm" id="surcharge-display-desktop">{{ formatAmountString .page.SurchargeAmount .page.Currency }}</span>
               </div>
+              {{ if .page.IncludeTip }}
               <div class="flex items-center justify-between">
                 <span class="text-sm text-slate-600">Tip</span>
                 <span class="font-mono text-sm" id="tip-amount-desktop">{{ .page.Currency }}0.00</span>
               </div>
+              {{ end }}
               <div class="border-t border-slate-200 pt-2">
                 <div class="flex items-center justify-between">
                   <span class="text-sm font-semibold text-slate-700">Amount due</span>
@@ -776,24 +780,39 @@
             // Update Tax and Surcharge if provided by API
             try {
                 if (data.tax_amount !== undefined && data.tax_amount !== null) {
-                    const taxText = String(data.tax_amount)
+                    const taxFormatted = formatAmountString(data.tax_amount, currency)
                     const taxEl = document.getElementById('tax-display')
                     const taxElDesktop = document.getElementById('tax-display-desktop')
-                    if (taxEl) taxEl.textContent = `${currency}${taxText}`
-                    if (taxElDesktop) taxElDesktop.textContent = `${currency}${taxText}`
+                    if (taxEl) taxEl.textContent = taxFormatted
+                    if (taxElDesktop) taxElDesktop.textContent = taxFormatted
                 }
                 if (data.surcharge_amount !== undefined && data.surcharge_amount !== null) {
-                    const surText = String(data.surcharge_amount)
+                    const surFormatted = formatAmountString(data.surcharge_amount, currency)
                     const surEl = document.getElementById('surcharge-display')
                     const surElDesktop = document.getElementById('surcharge-display-desktop')
-                    if (surEl) surEl.textContent = `${currency}${surText}`
-                    if (surElDesktop) surElDesktop.textContent = `${currency}${surText}`
+                    if (surEl) surEl.textContent = surFormatted
+                    if (surElDesktop) surElDesktop.textContent = surFormatted
                 }
             } catch (_) {}
 
             // Update tip-related data
             if (data.include_tip !== undefined) {
                 includeTip = data.include_tip
+                // Show/hide tip line in amount breakdown
+                const tipLine = document.getElementById('tip-amount')
+                const tipLineDesktop = document.getElementById('tip-amount-desktop')
+                if (tipLine) {
+                    const tipRow = tipLine.closest('.flex')
+                    if (tipRow) {
+                        tipRow.style.display = includeTip ? 'flex' : 'none'
+                    }
+                }
+                if (tipLineDesktop) {
+                    const tipRowDesktop = tipLineDesktop.closest('.flex')
+                    if (tipRowDesktop) {
+                        tipRowDesktop.style.display = includeTip ? 'flex' : 'none'
+                    }
+                }
             }
             if (data.allowed_tip_percentages) {
                 try {
@@ -837,7 +856,7 @@
                 updateTipDisplay()
             }
             
-            // Update amount display
+            // Recalculate subtotal and total when tax/surcharge changes
             updateAmountDisplay()
 
             // Update Apple Pay amount if available (use total amount including tip)
@@ -876,6 +895,41 @@
             return currency === 'USD' ? `$${amount}` : `${amount} ${currency}`
         }
 
+        // Function to format amount string (parses various formats)
+        function formatAmountString(amountStr, currency) {
+            if (!amountStr || amountStr === '') {
+                return currency + '0.00'
+            }
+            
+            // Remove currency prefix if present (e.g., "USD21925" -> "21925")
+            let cleaned = amountStr.trim()
+            const prefixes = ['USD', 'CAD', 'EUR', 'GBP', '$']
+            for (const prefix of prefixes) {
+                if (cleaned.toUpperCase().startsWith(prefix.toUpperCase())) {
+                    cleaned = cleaned.substring(prefix.length).trim()
+                    break
+                }
+            }
+            
+            // Try to parse as decimal first (e.g., "219.25")
+            if (cleaned.includes('.')) {
+                const amount = parseFloat(cleaned)
+                if (!isNaN(amount)) {
+                    return currency + ' ' + amount.toFixed(2)
+                }
+            }
+            
+            // Try to parse as integer (assume it's already in cents)
+            const amount = parseInt(cleaned)
+            if (!isNaN(amount)) {
+                const major = amount / 100.0
+                return currency + ' ' + major.toFixed(2)
+            }
+            
+            // If parsing fails, return the original string
+            return currency + ' ' + amountStr
+        }
+
         // Tip calculation functions
         function calculateTipAmount(tipPercentage) {
             return Math.round(amountCents * tipPercentage)
@@ -884,8 +938,6 @@
         function updateTipDisplay() {
             const tipAmountElement = document.getElementById('tip-amount')
             const tipAmountElementDesktop = document.getElementById('tip-amount-desktop')
-            const amountDisplayElement = document.getElementById('amount-display')
-            const amountDisplayElementDesktop = document.getElementById('amount-display-desktop')
             
             if (tipAmountElement) {
                 tipAmountElement.textContent = formatAmount(selectedTipAmount, currency)
@@ -894,14 +946,8 @@
                 tipAmountElementDesktop.textContent = formatAmount(selectedTipAmount, currency)
             }
             
-            if (amountDisplayElement) {
-                totalAmountCents = amountCents + selectedTipAmount
-                amountDisplayElement.textContent = formatAmount(totalAmountCents, currency)
-            }
-            if (amountDisplayElementDesktop) {
-                totalAmountCents = amountCents + selectedTipAmount
-                amountDisplayElementDesktop.textContent = formatAmount(totalAmountCents, currency)
-            }
+            // Recalculate subtotal and total when tip changes
+            updateAmountDisplay()
             
             // Update Apple Pay amount if Apple Pay method is selected
             if (methodApple && methodApple.checked && window.DatacapApplePay && DatacapApplePay.init) {
@@ -915,16 +961,8 @@
             const amountDisplayElement = document.getElementById('amount-display')
             const amountDisplayElementDesktop = document.getElementById('amount-display-desktop')
             
-            // Update subtotal (base amount without tax, surcharge, or tip)
-            if (subtotalElement) {
-                subtotalElement.textContent = formatAmount(amountCents, currency)
-            }
-            if (subtotalElementDesktop) {
-                subtotalElementDesktop.textContent = formatAmount(amountCents, currency)
-            }
-            
-            // Calculate total: subtotal + tax + surcharge + tip
-            let totalCents = amountCents + selectedTipAmount
+            // Calculate subtotal: AmountCents - tax - surcharge
+            let totalFeesCents = 0
             
             // Add tax if present
             const taxElement = document.getElementById('tax-display')
@@ -937,7 +975,7 @@
                 const taxNumber = parseFloat(taxText)
                 const taxCents = Math.round((isNaN(taxNumber) ? 0 : taxNumber) * 100)
                 if (!isNaN(taxCents)) {
-                    totalCents += taxCents
+                    totalFeesCents += taxCents
                 }
             }
             
@@ -952,20 +990,34 @@
                 const surchargeNumber = parseFloat(surchargeText)
                 const surchargeCents = Math.round((isNaN(surchargeNumber) ? 0 : surchargeNumber) * 100)
                 if (!isNaN(surchargeCents)) {
-                    totalCents += surchargeCents
+                    totalFeesCents += surchargeCents
                 }
             }
             
-            // Update total amount
+            // Calculate subtotal: AmountCents - tax - surcharge
+            const subtotalCents = Math.max(0, amountCents - totalFeesCents)
+            
+            // Calculate amount due: AmountCents + tip
+            const amountDueCents = amountCents + selectedTipAmount
+            
+            // Update subtotal display
+            if (subtotalElement) {
+                subtotalElement.textContent = formatAmount(subtotalCents, currency)
+            }
+            if (subtotalElementDesktop) {
+                subtotalElementDesktop.textContent = formatAmount(subtotalCents, currency)
+            }
+            
+            // Update amount due display
             if (amountDisplayElement) {
-                amountDisplayElement.textContent = formatAmount(totalCents, currency)
+                amountDisplayElement.textContent = formatAmount(amountDueCents, currency)
             }
             if (amountDisplayElementDesktop) {
-                amountDisplayElementDesktop.textContent = formatAmount(totalCents, currency)
+                amountDisplayElementDesktop.textContent = formatAmount(amountDueCents, currency)
             }
             
             // Update global total for Apple Pay
-            totalAmountCents = totalCents
+            totalAmountCents = amountDueCents
         }
 
         function initializeTipSection() {
@@ -1152,6 +1204,22 @@
 
             // Initialize tip section
             initializeTipSection()
+            
+            // Initialize tip line visibility
+            const tipLine = document.getElementById('tip-amount')
+            const tipLineDesktop = document.getElementById('tip-amount-desktop')
+            if (tipLine) {
+                const tipRow = tipLine.closest('.flex')
+                if (tipRow) {
+                    tipRow.style.display = includeTip ? 'flex' : 'none'
+                }
+            }
+            if (tipLineDesktop) {
+                const tipRowDesktop = tipLineDesktop.closest('.flex')
+                if (tipRowDesktop) {
+                    tipRowDesktop.style.display = includeTip ? 'flex' : 'none'
+                }
+            }
             
             // Initialize amount display
             updateAmountDisplay()
@@ -1362,3 +1430,4 @@
     </script>
   </body>
 </html>
+
