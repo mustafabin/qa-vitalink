@@ -239,9 +239,29 @@
           {{ end }}
 
           <div class="mt-6 rounded-xl bg-slate-50 p-4 border border-slate-200">
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-600">Amount due</span>
-              <span class="font-mono text-xl font-semibold" id="amount-display">{{ formatAmount .page.AmountCents .page.Currency }}</span>
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-slate-600">Subtotal</span>
+                <span class="font-mono text-sm" id="subtotal-display">{{ formatAmount .page.AmountCents .page.Currency }}</span>
+              </div>
+              {{ if .page.TaxAmount }}
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-slate-600">Tax</span>
+                <span class="font-mono text-sm" id="tax-display">{{ .page.Currency }}{{ .page.TaxAmount }}</span>
+              </div>
+              {{ end }}
+              {{ if .page.SurchargeAmount }}
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-slate-600">Surcharge</span>
+                <span class="font-mono text-sm" id="surcharge-display">{{ .page.Currency }}{{ .page.SurchargeAmount }}</span>
+              </div>
+              {{ end }}
+              <div class="border-t border-slate-200 pt-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-semibold text-slate-700">Amount due</span>
+                  <span class="font-mono text-xl font-semibold" id="amount-display">{{ formatAmount .page.AmountCents .page.Currency }}</span>
+                </div>
+              </div>
             </div>
             <div class="mt-2 text-[11px] text-slate-500">
               Page ID: {{ .page.PageUID }}
@@ -489,9 +509,29 @@
 
           <!-- Amount Section -->
           <div class="mb-6 rounded-xl bg-slate-50 p-4 border border-slate-200">
-            <div class="flex items-center justify-between">
-              <span class="text-sm text-slate-600">Amount due</span>
-              <span class="font-mono text-xl font-semibold" id="amount-display-desktop">{{ formatAmount .page.AmountCents .page.Currency }}</span>
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-slate-600">Subtotal</span>
+                <span class="font-mono text-sm" id="subtotal-display-desktop">{{ formatAmount .page.AmountCents .page.Currency }}</span>
+              </div>
+              {{ if .page.TaxAmount }}
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-slate-600">Tax</span>
+                <span class="font-mono text-sm" id="tax-display-desktop">{{ .page.Currency }}{{ .page.TaxAmount }}</span>
+              </div>
+              {{ end }}
+              {{ if .page.SurchargeAmount }}
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-slate-600">Surcharge</span>
+                <span class="font-mono text-sm" id="surcharge-display-desktop">{{ .page.Currency }}{{ .page.SurchargeAmount }}</span>
+              </div>
+              {{ end }}
+              <div class="border-t border-slate-200 pt-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-semibold text-slate-700">Amount due</span>
+                  <span class="font-mono text-xl font-semibold" id="amount-display-desktop">{{ formatAmount .page.AmountCents .page.Currency }}</span>
+                </div>
+              </div>
             </div>
             <div class="mt-2 text-[11px] text-slate-500">
               Page ID: {{ .page.PageUID }}
@@ -773,6 +813,9 @@
                 initializeTipSection()
                 updateTipDisplay()
             }
+            
+            // Update amount display
+            updateAmountDisplay()
 
             // Update Apple Pay amount if available (use total amount including tip)
             if (window.DatacapApplePay && DatacapApplePay.init) {
@@ -843,6 +886,31 @@
             }
         }
 
+        function updateAmountDisplay() {
+            const subtotalElement = document.getElementById('subtotal-display')
+            const subtotalElementDesktop = document.getElementById('subtotal-display-desktop')
+            const amountDisplayElement = document.getElementById('amount-display')
+            const amountDisplayElementDesktop = document.getElementById('amount-display-desktop')
+            
+            // Update subtotal (base amount without tip)
+            if (subtotalElement) {
+                subtotalElement.textContent = formatAmount(amountCents, currency)
+            }
+            if (subtotalElementDesktop) {
+                subtotalElementDesktop.textContent = formatAmount(amountCents, currency)
+            }
+            
+            // Update total amount (including tip if applicable)
+            if (amountDisplayElement) {
+                totalAmountCents = amountCents + selectedTipAmount
+                amountDisplayElement.textContent = formatAmount(totalAmountCents, currency)
+            }
+            if (amountDisplayElementDesktop) {
+                totalAmountCents = amountCents + selectedTipAmount
+                amountDisplayElementDesktop.textContent = formatAmount(totalAmountCents, currency)
+            }
+        }
+
         function initializeTipSection() {
             // Show tip section only if includeTip is true
             if (!includeTip) return
@@ -898,7 +966,14 @@
                 const middleIndex = Math.floor(allowedTipPercentages.length / 2)
                 const middleButton = tipPercentagesContainer.children[middleIndex]
                 if (middleButton) {
-                    middleButton.click() // Trigger the click event to select the middle option
+                    // Set the visual state first
+                    middleButton.classList.remove('bg-white', 'text-slate-700')
+                    middleButton.classList.add('bg-violet-600', 'text-white')
+                    
+                    // Calculate and set the tip amount
+                    const percentage = parseFloat(middleButton.dataset.percentage)
+                    selectedTipAmount = calculateTipAmount(percentage)
+                    updateTipDisplay()
                 }
             }
 
@@ -1020,6 +1095,9 @@
 
             // Initialize tip section
             initializeTipSection()
+            
+            // Initialize amount display
+            updateAmountDisplay()
         })
 
         // Payment handling functions
