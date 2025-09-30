@@ -207,7 +207,7 @@
           {{ end }}
 
 
-          {{ if or .page.IncludeTip .page.AllowedTipPercentages }}
+          {{ if .page.IncludeTip }}
           <div class="mt-6 rounded-xl bg-slate-50 p-4 border border-slate-200">
             <h3 class="text-sm font-semibold mb-3">Add tip</h3>
             <div class="space-y-3">
@@ -456,7 +456,7 @@
           {{ end }}
 
           <!-- Tip Section -->
-          {{ if or .page.IncludeTip .page.AllowedTipPercentages }}
+          {{ if .page.IncludeTip }}
           <div class="mb-6 rounded-xl bg-slate-50 p-4 border border-slate-200">
             <h3 class="text-sm font-semibold mb-3">Add tip</h3>
             <div class="space-y-3">
@@ -769,20 +769,20 @@
             }
 
             // Reinitialize tip section if tip settings changed
-            if (includeTip || allowedTipPercentages.length > 0) {
+            if (includeTip) {
                 initializeTipSection()
                 updateTipDisplay()
             }
 
             // Update Apple Pay amount if available (use total amount including tip)
             if (window.DatacapApplePay && DatacapApplePay.init) {
-                const totalAmount = (includeTip || allowedTipPercentages.length > 0) ? totalAmountCents : amountCents
+                const totalAmount = includeTip ? totalAmountCents : amountCents
                 DatacapApplePay.init(tokenCallback, webTokenMid, storeName, applePayMid, (totalAmount / 100).toFixed(2))
             }
             
             // Reinitialize Apple Pay button if Apple Pay method is selected
             if (methodApple && methodApple.checked) {
-                const totalAmount = (includeTip || allowedTipPercentages.length > 0) ? totalAmountCents : amountCents
+                const totalAmount = includeTip ? totalAmountCents : amountCents
                 DatacapApplePay.init(tokenCallback, webTokenMid, storeName, applePayMid, (totalAmount / 100).toFixed(2))
             }
         }
@@ -844,8 +844,8 @@
         }
 
         function initializeTipSection() {
-            // Show tip section if includeTip is true OR if there are allowed tip percentages
-            if (!includeTip && allowedTipPercentages.length === 0) return
+            // Show tip section only if includeTip is true
+            if (!includeTip) return
 
             // Initialize both mobile and desktop tip sections
             initializeTipSectionForContainer('tip-percentages', 'custom-tip')
@@ -1211,7 +1211,7 @@
         if (methodAppleDesktop) methodAppleDesktop.addEventListener('change', togglePaymentMethod)
         
         // Initialize Apple Pay with total amount (including tip)
-        const totalAmount = (includeTip || allowedTipPercentages.length > 0) ? totalAmountCents : amountCents
+        const totalAmount = includeTip ? totalAmountCents : amountCents
         if (window.DatacapApplePay && DatacapApplePay.init) {
           DatacapApplePay.init(tokenCallback, webTokenMid, storeName, applePayMid, (totalAmount / 100).toFixed(2))
         }
