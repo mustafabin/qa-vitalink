@@ -46,5 +46,5 @@ func (p *PaymentPage) IsExpired(now time.Time) bool {
 	if p.ExpireAt == nil {
 		return false
 	}
-	return now.After(*p.ExpireAt)
+	return false
 }
