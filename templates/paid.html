@@ -273,41 +273,39 @@
        // Initialize theme first
        initializeTheme()
 
-       (function () {
-         try {
-           var el = document.getElementById('page-data')
-           var createdAtUtc = el && el.dataset && el.dataset.createdAtUtc
-           var dateEl = document.getElementById('receipt-date')
-           if (createdAtUtc && dateEl) {
-             var d = new Date(createdAtUtc)
-             if (!isNaN(d.getTime())) {
-               dateEl.textContent = d.toLocaleString()
-             }
-           }
-         } catch (e) {}
+      try {
+        var el = document.getElementById('page-data')
+        var createdAtUtc = el && el.dataset && el.dataset.createdAtUtc
+        var dateEl = document.getElementById('receipt-date')
+        if (createdAtUtc && dateEl) {
+          var d = new Date(createdAtUtc)
+          if (!isNaN(d.getTime())) {
+            dateEl.textContent = d.toLocaleString()
+          }
+        }
+      } catch (e) {}
 
-         try {
-           var itemsRoot = document.getElementById('items_list')
-           var itemsJSON = (el && el.dataset && el.dataset.itemsJson) || ''
-           if (itemsRoot && itemsJSON) {
-             var arr = JSON.parse(itemsJSON)
-             if (Array.isArray(arr)) {
-               itemsRoot.innerHTML = arr.map(function (it) {
-                 var title = (it && it.title) || ''
-                 var desc = (it && it.description) || ''
-                 var price = (it && it.price) || 0
-                 return '<div class="flex items-center justify-between">\
-                   <div>\
-                     <div class="font-medium">' + title + '</div>\
-                     <div class="text-[12px] text-slate-500">' + desc + '</div>\
-                   </div>\
-                   <div class="font-mono text-sm">' + (Number(price) / 100).toFixed(2) + '</div>\
-                 </div>'
-               }).join('')
-             }
-           }
-         } catch (e) {}
-       })()
+      try {
+        var itemsRoot = document.getElementById('items_list')
+        var itemsJSON = el?.dataset?.itemsJson || ''
+        if (itemsRoot && itemsJSON) {
+          var arr = JSON.parse(itemsJSON)
+          if (Array.isArray(arr)) {
+            itemsRoot.innerHTML = arr.map(function (it) {
+              var title = (it && it.title) || ''
+              var desc = (it && it.description) || ''
+              var price = (it && it.price) || 0
+              return '<div class="flex items-center justify-between">\
+                <div>\
+                  <div class="font-medium">' + title + '</div>\
+                  <div class="text-[12px] text-slate-500">' + desc + '</div>\
+                </div>\
+                <div class="font-mono text-sm">' + (Number(price) / 100).toFixed(2) + '</div>\
+              </div>'
+            }).join('')
+          }
+        }
+      } catch (e) {}
      </script>
    </body>
  </html>
