@@ -501,17 +501,18 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	}
 
 	log.Println("forwarding to main server ...")
-	ctx, cancel := context.WithTimeout(c.Request().Context(), 30*time.Second)
-	defer cancel()
 
-	reqHttp, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(bodyBytes))
+	reqHttp, err := http.NewRequest(http.MethodPost, endpoint, bytes.NewReader(bodyBytes))
 	if err != nil {
 		log.Println("request build error:", err)
 		return c.JSON(http.StatusInternalServerError, map[string]any{"error": "request build error"})
 	}
 	reqHttp.Header.Set("Content-Type", "application/json")
 
-	resp, err := http.DefaultClient.Do(reqHttp)
+	client := &http.Client{
+		Timeout: 30 * time.Second,
+	}
+	resp, err := client.Do(reqHttp)
 	if err != nil {
 		log.Println("vitapay request failed:", err)
 		return c.JSON(http.StatusBadGateway, map[string]any{"error": "datacap request failed", "details": err.Error()})
@@ -552,7 +553,7 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	}
 
 	if approved {
-		_ = markPaymentFulfilled(ctx, db, &page, dcResp)
+		_ = markPaymentFulfilled(c.Request().Context(), db, &page, dcResp)
 		return c.JSON(http.StatusOK, map[string]any{
 			"approved": true,
 			"message":  message,
