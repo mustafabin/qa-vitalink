@@ -457,9 +457,14 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "amount must be at least 0.01"})
 	}
 
+	log.Println("Calculating total amount including tip ...")
 	// Calculate total amount including tip
+	log.Println("Tip amount:", req.TipAmountCents)
+	log.Println("Page amount:", page.AmountCents)
 	totalAmountCents := page.AmountCents + req.TipAmountCents
 	amount := fmt.Sprintf("%.2f", float64(totalAmountCents)/100)
+
+	log.Println("Total amount:", amount)
 
 	payload := map[string]string{
 		"Token":        req.DatacapToken,
@@ -473,6 +478,7 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 		"WebhookURL":   page.WebhookURL,
 	}
 
+	log.Println("Setting payload ...")
 	if page.InvoiceNo != "" {
 		payload["InvoiceNo"] = page.InvoiceNo
 	}
@@ -494,17 +500,20 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 		return c.JSON(http.StatusInternalServerError, map[string]any{"error": "marshal error"})
 	}
 
-	ctx, cancel := context.WithTimeout(c.Request().Context(), 15*time.Second)
+	log.Println("forwarding to main server ...")
+	ctx, cancel := context.WithTimeout(c.Request().Context(), 30*time.Second)
 	defer cancel()
 
 	reqHttp, err := http.NewRequestWithContext(ctx, http.MethodPost, endpoint, bytes.NewReader(bodyBytes))
 	if err != nil {
+		log.Println("request build error:", err)
 		return c.JSON(http.StatusInternalServerError, map[string]any{"error": "request build error"})
 	}
 	reqHttp.Header.Set("Content-Type", "application/json")
 
 	resp, err := http.DefaultClient.Do(reqHttp)
 	if err != nil {
+		log.Println("vitapay request failed:", err)
 		return c.JSON(http.StatusBadGateway, map[string]any{"error": "datacap request failed", "details": err.Error()})
 	}
 	defer resp.Body.Close()
@@ -512,6 +521,8 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 
 	var dcResp map[string]any
 	_ = json.Unmarshal(respBytes, &dcResp)
+
+	log.Println("vitapay response:", dcResp)
 
 	// Fallback to client-provided metadata if gateway response omits these
 	if dcResp == nil {
