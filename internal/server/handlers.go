@@ -96,6 +96,7 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 		Logo2                 string          `json:"logo2"`
 		FavIcon               string          `json:"favicon"`
 		Environment           string          `json:"environment"`
+		WebhookURL            string          `json:"webhook_url" default:""`
 	}
 
 	log.Println("Create payment page request received")
@@ -196,6 +197,7 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 		Logo2:                 req.Logo2,
 		FavIcon:               req.FavIcon,
 		Environment:           req.Environment,
+		WebhookURL:            req.WebhookURL,
 	}
 
 	if err := db.Create(&pp).Error; err != nil {
@@ -468,6 +470,7 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 		"InvoiceNo":    page.InvoiceNo,
 		"MerchantID":   page.MerchantID,
 		"PageUID":      page.PageUID,
+		"WebhookURL":   page.WebhookURL,
 	}
 
 	if page.InvoiceNo != "" {

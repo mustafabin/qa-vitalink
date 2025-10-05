@@ -32,7 +32,7 @@
         --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
       }
-      
+
       [data-theme="dark"] {
         /* Dark theme */
         --bg-primary: #0f172a;
@@ -53,14 +53,14 @@
         --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
       }
-      
+
       /* Apply theme colors */
       body {
         background-color: var(--bg-primary);
         color: var(--text-primary);
         transition: background-color 0.3s ease, color 0.3s ease;
       }
-      
+
       .bg-slate-50 { background-color: var(--bg-primary) !important; }
       .bg-white { background-color: var(--bg-secondary) !important; }
       .bg-slate-100 { background-color: var(--bg-tertiary) !important; }
@@ -74,23 +74,23 @@
       .text-emerald-700 { color: var(--success-text) !important; }
       .shadow-xl { box-shadow: var(--shadow) !important; }
       .shadow-sm { box-shadow: var(--shadow-sm) !important; }
-      
+
       /* Additional text color overrides for better dark mode support */
       .font-medium { color: var(--text-primary) !important; }
       .font-semibold { color: var(--text-primary) !important; }
       .text-xs { color: var(--text-tertiary) !important; }
-      
+
       /* Specific overrides for items list to ensure proper visibility */
       #items_list .text-sm { color: var(--text-secondary) !important; }
       #items_list .font-medium { color: var(--text-primary) !important; }
-      
+
       /* Theme-aware logo display */
       .logo-light { display: block; }
       .logo-dark { display: none; }
-      
+
       [data-theme="dark"] .logo-light { display: none; }
       [data-theme="dark"] .logo-dark { display: block; }
-      
+
       /* Theme Toggle Styles */
       .theme-toggle {
         position: fixed;
@@ -111,19 +111,19 @@
         -webkit-backdrop-filter: blur(10px);
         backdrop-filter: blur(10px);
       }
-      
+
       .theme-toggle:hover {
         transform: scale(1.05);
         box-shadow: var(--shadow);
       }
-      
+
       .theme-toggle svg {
         width: 1.25rem;
         height: 1.25rem;
         color: var(--text-secondary);
         transition: all 0.3s ease;
       }
-      
+
       /* Mobile adjustments */
       @media (max-width: 640px) {
         .theme-toggle {
@@ -132,16 +132,65 @@
           width: 2.25rem;
           height: 2.25rem;
         }
-        
+
         .theme-toggle svg {
           width: 1rem;
           height: 1rem;
         }
       }
-      
+
       /* Smooth transitions for all elements */
       * {
         transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+      }
+
+      /* Print Button Styles */
+      .print-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0.625rem 1.25rem;
+        background-color: var(--bg-secondary);
+        color: var(--text-primary);
+        border: 1px solid var(--border-primary);
+        border-radius: 0.75rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: var(--shadow-sm);
+      }
+
+      .print-button:hover {
+        background-color: var(--bg-tertiary);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow);
+      }
+
+      .print-button svg {
+        width: 1rem;
+        height: 1rem;
+      }
+
+      /* Print Media Query - Hide non-printable elements */
+      @media print {
+        .theme-toggle,
+        .print-button {
+          display: none !important;
+        }
+
+        body {
+          background-color: white;
+        }
+
+        .bg-slate-50 {
+          background-color: white !important;
+        }
+
+        .shadow-xl {
+          box-shadow: none !important;
+        }
       }
     </style>
   </head>
@@ -219,6 +268,15 @@
               Payment completed
             </p>
           </div>
+
+          <div class="mt-4 text-center">
+            <button id="print-button" class="print-button" aria-label="Print receipt">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              Print Receipt
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -229,18 +287,18 @@
            const themeToggle = document.getElementById('theme-toggle')
            const themeIcon = document.getElementById('theme-icon')
            const html = document.documentElement
-           
+
            // Check for saved theme preference or default to system preference
            const savedTheme = localStorage.getItem('theme')
            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-           
+
            let currentTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light')
-           
+
            // Apply theme
            function applyTheme(theme) {
                html.setAttribute('data-theme', theme)
                localStorage.setItem('theme', theme)
-               
+
                // Update icon
                if (theme === 'dark') {
                    themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />'
@@ -248,13 +306,13 @@
                    themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />'
                }
            }
-           
+
            // Toggle theme
            function toggleTheme() {
                currentTheme = currentTheme === 'light' ? 'dark' : 'light'
                applyTheme(currentTheme)
            }
-           
+
            // Listen for system theme changes
            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
                if (!localStorage.getItem('theme')) {
@@ -262,16 +320,24 @@
                    applyTheme(currentTheme)
                }
            })
-           
+
            // Apply initial theme
            applyTheme(currentTheme)
-           
+
            // Add click listener
            themeToggle.addEventListener('click', toggleTheme)
        }
 
        // Initialize theme first
        initializeTheme()
+
+      // Print functionality
+      const printButton = document.getElementById('print-button')
+      if (printButton) {
+        printButton.addEventListener('click', function() {
+          window.print()
+        })
+      }
 
       try {
         var el = document.getElementById('page-data')
