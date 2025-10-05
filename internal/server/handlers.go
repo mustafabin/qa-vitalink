@@ -39,7 +39,7 @@ func generatePageUID(length int) (string, error) {
 
 func grabConfig(token string) (string, error) {
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", "http://dscwgkwsocgk0wsgc4skoogo-172732738126:3000/api/config", nil) // todo change this to the prod url
+	req, err := http.NewRequest("GET", "https://api.vitapay.com/api/config", nil)
 	if err != nil {
 		return "", fmt.Errorf("error creating request: %v", err)
 	}
@@ -450,7 +450,7 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	}
 	log.Println("Charging payment for page:", page.MerchantID, page.PageUID)
 
-	endpoint := "https://api.vitapay.com/v1/credit/sale" //! IMPORTANT: change this to the prod url
+	endpoint := "https://api.vitapay.com/v1/credit/sale"
 
 	if page.AmountCents < 1 {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "amount must be at least 0.01"})
