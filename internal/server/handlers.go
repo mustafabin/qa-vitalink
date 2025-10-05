@@ -451,16 +451,45 @@ func handleFetchPaymentPageData(c echo.Context, db *gorm.DB) error {
 }
 
 func handleTestConnection(c echo.Context) error {
-	result, err := testAPIConnection()
+	testURL := c.QueryParam("url")
+	if testURL == "" {
+		testURL = "https://api.vitabyte.info"
+	}
+
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+
+	log.Printf("Testing connection to %s ...\n", testURL)
+	start := time.Now()
+
+	resp, err := client.Get(testURL)
+	elapsed := time.Since(start)
+
 	if err != nil {
+		log.Printf("Connection test FAILED after %v: %v\n", elapsed, err)
 		return c.JSON(500, map[string]any{
 			"success": false,
 			"error":   err.Error(),
+			"elapsed": elapsed.String(),
+			"url":     testURL,
 		})
 	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+	result := string(body)
+
+	log.Printf("Connection test SUCCESS after %v\n", elapsed)
+	log.Printf("Status: %d\n", resp.StatusCode)
+	log.Printf("Response: %s\n", result)
+
 	return c.JSON(200, map[string]any{
 		"success": true,
 		"result":  result,
+		"status":  resp.StatusCode,
+		"elapsed": elapsed.String(),
+		"url":     testURL,
 	})
 }
 
