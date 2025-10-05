@@ -19,7 +19,7 @@
     {{ end }}
     <style>
       .hidden-content { display: none; }
-      
+
       /* CSS Variables for Theme System */
       :root {
         /* Light theme (default) */
@@ -41,7 +41,7 @@
         --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
       }
-      
+
       [data-theme="dark"] {
         /* Dark theme */
         --bg-primary: #0f172a;
@@ -62,14 +62,14 @@
         --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
       }
-      
+
       /* Apply theme colors */
       body {
         background-color: var(--bg-primary);
         color: var(--text-primary);
         transition: background-color 0.3s ease, color 0.3s ease;
       }
-      
+
       .bg-slate-50 { background-color: var(--bg-primary) !important; }
       .bg-white { background-color: var(--bg-secondary) !important; }
       .bg-slate-100 { background-color: var(--bg-tertiary) !important; }
@@ -86,20 +86,20 @@
       .text-red-700 { color: var(--error-text) !important; }
       .shadow-xl { box-shadow: var(--shadow) !important; }
       .shadow-sm { box-shadow: var(--shadow-sm) !important; }
-      
+
       /* Additional text color overrides for better dark mode support */
       .font-medium { color: var(--text-primary) !important; }
       .font-semibold { color: var(--text-primary) !important; }
       .text-sm { color: var(--text-secondary) !important; }
       .text-xs { color: var(--text-tertiary) !important; }
-      
+
       /* Theme-aware logo display */
       .logo-light { display: block; }
       .logo-dark { display: none; }
-      
+
       [data-theme="dark"] .logo-light { display: none; }
       [data-theme="dark"] .logo-dark { display: block; }
-      
+
       /* Theme Toggle Styles */
       .theme-toggle {
         position: fixed;
@@ -120,19 +120,19 @@
         -webkit-backdrop-filter: blur(10px);
         backdrop-filter: blur(10px);
       }
-      
+
       .theme-toggle:hover {
         transform: scale(1.05);
         box-shadow: var(--shadow);
       }
-      
+
       .theme-toggle svg {
         width: 1.25rem;
         height: 1.25rem;
         color: var(--text-secondary);
         transition: all 0.3s ease;
       }
-      
+
       /* Mobile adjustments */
       @media (max-width: 640px) {
         .theme-toggle {
@@ -141,16 +141,36 @@
           width: 2.25rem;
           height: 2.25rem;
         }
-        
+
         .theme-toggle svg {
           width: 1rem;
           height: 1rem;
         }
       }
-      
+
       /* Smooth transitions for all elements */
       * {
         transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+      }
+
+      /* Input field styling for dark mode */
+      input[type="text"],
+      input[type="tel"],
+      input[type="number"] {
+        color: #0b101c !important;
+        background-color: #ffffff !important;
+      }
+
+      [data-theme="dark"] input[type="text"],
+      [data-theme="dark"] input[type="tel"],
+      [data-theme="dark"] input[type="number"] {
+        color: #0b101c !important;
+        background-color: #ffffff !important;
+        border-color: var(--border-secondary) !important;
+      }
+
+      [data-theme="dark"] input::placeholder {
+        color: #303030 !important;
       }
     </style>
   </head>
@@ -747,7 +767,7 @@
             try {
                 const response = await fetch(`/api/payment-pages/${merchantId}/${pageUid}/data`)
                 const result = await response.json()
-                
+
                 if (result.success && result.data) {
                     // Update page data with fresh data from API
                     updatePageData(result.data)
@@ -855,7 +875,7 @@
                 initializeTipSection()
                 updateTipDisplay()
             }
-            
+
             // Recalculate subtotal and total when tax/surcharge changes
             updateAmountDisplay()
 
@@ -864,7 +884,7 @@
                 const totalAmount = includeTip ? totalAmountCents : amountCents
                 DatacapApplePay.init(tokenCallback, webTokenMid, storeName, applePayMid, (totalAmount / 100).toFixed(2))
             }
-            
+
             // Reinitialize Apple Pay button if Apple Pay method is selected
             if (methodApple && methodApple.checked) {
                 const totalAmount = includeTip ? totalAmountCents : amountCents
@@ -877,7 +897,7 @@
             const loadingOverlay = document.getElementById('loading-overlay')
             const paymentContentMobile = document.getElementById('payment-content-mobile')
             const paymentContentDesktop = document.getElementById('payment-content-desktop')
-            
+
             if (loadingOverlay) {
                 loadingOverlay.classList.add('hidden')
             }
@@ -900,7 +920,7 @@
             if (!amountStr || amountStr === '') {
                 return currency + '0.00'
             }
-            
+
             // Remove currency prefix if present (e.g., "USD21925" -> "21925")
             let cleaned = amountStr.trim()
             const prefixes = ['USD', 'CAD', 'EUR', 'GBP', '$']
@@ -910,7 +930,7 @@
                     break
                 }
             }
-            
+
             // Try to parse as decimal first (e.g., "219.25")
             if (cleaned.includes('.')) {
                 const amount = parseFloat(cleaned)
@@ -918,14 +938,14 @@
                     return currency + ' ' + amount.toFixed(2)
                 }
             }
-            
+
             // Try to parse as integer (assume it's already in cents)
             const amount = parseInt(cleaned)
             if (!isNaN(amount)) {
                 const major = amount / 100.0
                 return currency + ' ' + major.toFixed(2)
             }
-            
+
             // If parsing fails, return the original string
             return currency + ' ' + amountStr
         }
@@ -938,17 +958,17 @@
         function updateTipDisplay() {
             const tipAmountElement = document.getElementById('tip-amount')
             const tipAmountElementDesktop = document.getElementById('tip-amount-desktop')
-            
+
             if (tipAmountElement) {
                 tipAmountElement.textContent = formatAmount(selectedTipAmount, currency)
             }
             if (tipAmountElementDesktop) {
                 tipAmountElementDesktop.textContent = formatAmount(selectedTipAmount, currency)
             }
-            
+
             // Recalculate subtotal and total when tip changes
             updateAmountDisplay()
-            
+
             // Update Apple Pay amount if Apple Pay method is selected
             if (methodApple && methodApple.checked && window.DatacapApplePay && DatacapApplePay.init) {
                 DatacapApplePay.init(tokenCallback, webTokenMid, storeName, applePayMid, (totalAmountCents / 100).toFixed(2))
@@ -960,10 +980,10 @@
             const subtotalElementDesktop = document.getElementById('subtotal-display-desktop')
             const amountDisplayElement = document.getElementById('amount-display')
             const amountDisplayElementDesktop = document.getElementById('amount-display-desktop')
-            
+
             // Calculate subtotal: AmountCents - tax - surcharge
             let totalFeesCents = 0
-            
+
             // Add tax if present
             const taxElement = document.getElementById('tax-display')
             if (taxElement && taxElement.textContent) {
@@ -978,7 +998,7 @@
                     totalFeesCents += taxCents
                 }
             }
-            
+
             // Add surcharge if present
             const surchargeElement = document.getElementById('surcharge-display')
             if (surchargeElement && surchargeElement.textContent) {
@@ -993,13 +1013,13 @@
                     totalFeesCents += surchargeCents
                 }
             }
-            
+
             // Calculate subtotal: AmountCents - tax - surcharge
             const subtotalCents = Math.max(0, amountCents - totalFeesCents)
-            
+
             // Calculate amount due: AmountCents + tip
             const amountDueCents = amountCents + selectedTipAmount
-            
+
             // Update subtotal display
             if (subtotalElement) {
                 subtotalElement.textContent = formatAmount(subtotalCents, currency)
@@ -1007,7 +1027,7 @@
             if (subtotalElementDesktop) {
                 subtotalElementDesktop.textContent = formatAmount(subtotalCents, currency)
             }
-            
+
             // Update amount due display
             if (amountDisplayElement) {
                 amountDisplayElement.textContent = formatAmount(amountDueCents, currency)
@@ -1015,7 +1035,7 @@
             if (amountDisplayElementDesktop) {
                 amountDisplayElementDesktop.textContent = formatAmount(amountDueCents, currency)
             }
-            
+
             // Update global total for Apple Pay
             totalAmountCents = amountDueCents
         }
@@ -1036,8 +1056,8 @@
             // Create tip percentage buttons
             tipPercentagesContainer.innerHTML = allowedTipPercentages.map(percentage => {
                 const percentageText = Math.round(percentage * 100) + '%'
-                return `<button 
-                    type="button" 
+                return `<button
+                    type="button"
                     class="tip-percentage-btn h-10 rounded-lg border border-slate-200 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600"
                     data-percentage="${percentage}">
                     ${percentageText}
@@ -1052,16 +1072,16 @@
                         b.classList.remove('bg-violet-600', 'text-white')
                         b.classList.add('bg-white', 'text-slate-700')
                     })
-                    
+
                     // Add active class to clicked button
                     this.classList.remove('bg-white', 'text-slate-700')
                     this.classList.add('bg-violet-600', 'text-white')
-                    
+
                     // Calculate and update tip
                     const percentage = parseFloat(this.dataset.percentage)
                     selectedTipAmount = calculateTipAmount(percentage)
                     updateTipDisplay()
-                    
+
                     // Clear custom tip inputs
                     const customTipInput = document.getElementById('custom-tip')
                     const customTipInputDesktop = document.getElementById('custom-tip-desktop')
@@ -1078,7 +1098,7 @@
                     // Set the visual state first
                     middleButton.classList.remove('bg-white', 'text-slate-700')
                     middleButton.classList.add('bg-violet-600', 'text-white')
-                    
+
                     // Calculate and set the tip amount
                     const percentage = parseFloat(middleButton.dataset.percentage)
                     selectedTipAmount = calculateTipAmount(percentage)
@@ -1093,7 +1113,7 @@
                     const customAmount = parseFloat(this.value) || 0
                     selectedTipAmount = Math.round(customAmount * 100) // Convert to cents
                     updateTipDisplay()
-                    
+
                     // Remove active class from percentage buttons in both containers
                     document.querySelectorAll('.tip-percentage-btn').forEach(b => {
                         b.classList.remove('bg-violet-600', 'text-white')
@@ -1108,18 +1128,18 @@
             const themeToggle = document.getElementById('theme-toggle')
             const themeIcon = document.getElementById('theme-icon')
             const html = document.documentElement
-            
+
             // Check for saved theme preference or default to system preference
             const savedTheme = localStorage.getItem('theme')
             const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-            
+
             let currentTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light')
-            
+
             // Apply theme
             function applyTheme(theme) {
                 html.setAttribute('data-theme', theme)
                 localStorage.setItem('theme', theme)
-                
+
                 // Update icon
                 if (theme === 'dark') {
                     themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />'
@@ -1127,13 +1147,13 @@
                     themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />'
                 }
             }
-            
+
             // Toggle theme
             function toggleTheme() {
                 currentTheme = currentTheme === 'light' ? 'dark' : 'light'
                 applyTheme(currentTheme)
             }
-            
+
             // Listen for system theme changes
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
                 if (!localStorage.getItem('theme')) {
@@ -1141,10 +1161,10 @@
                     applyTheme(currentTheme)
                 }
             })
-            
+
             // Apply initial theme
             applyTheme(currentTheme)
-            
+
             // Add click listener
             themeToggle.addEventListener('click', toggleTheme)
         }
@@ -1153,10 +1173,10 @@
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize theme first
             initializeTheme()
-            
+
             // Start fetching updated data
             fetchPaymentPageData()
-            
+
             // Initialize date display
             try {
                 let dateEl = document.getElementById("receipt-date")
@@ -1195,7 +1215,7 @@
                               <div class="font-mono text-sm">${(Number(price) / 100).toFixed(2)}</div>
                             </div>`
                         }).join("")
-                        
+
                         if (itemsRoot) itemsRoot.innerHTML = itemsHTML
                         if (itemsRootDesktop) itemsRootDesktop.innerHTML = itemsHTML
                     }
@@ -1204,7 +1224,7 @@
 
             // Initialize tip section
             initializeTipSection()
-            
+
             // Initialize tip line visibility
             const tipLine = document.getElementById('tip-amount')
             const tipLineDesktop = document.getElementById('tip-amount-desktop')
@@ -1220,7 +1240,7 @@
                     tipRowDesktop.style.display = includeTip ? 'flex' : 'none'
                 }
             }
-            
+
             // Initialize amount display
             updateAmountDisplay()
         })
@@ -1245,9 +1265,9 @@
           return fetch(chargeUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ 
-              datacap_token: datacapToken, 
-              last4: last4, 
+            body: JSON.stringify({
+              datacap_token: datacapToken,
+              last4: last4,
               brand: brand,
               tip_amount_cents: selectedTipAmount
             }),
@@ -1269,7 +1289,7 @@
         let payBtnSpinner = document.getElementById("pay_btn_spinner")
         let payBtnText = document.getElementById("pay_btn_text")
         let paymentErrors = document.getElementById("payment_errors")
-        
+
         // desktop elements
         let payBtnDesktop = document.getElementById("pay_button_desktop")
         let payBtnSpinnerDesktop = document.getElementById("pay_btn_spinner_desktop")
@@ -1288,7 +1308,7 @@
             }
             if (payBtnSpinner) payBtnSpinner.classList.toggle("hidden", !isLoading)
             if (payBtnText) payBtnText.textContent = isLoading ? "Processing..." : "Pay"
-            
+
             // Desktop elements
             if (payBtnDesktop) {
               payBtnDesktop.disabled = !!isLoading
@@ -1354,7 +1374,7 @@
             DatacapWebToken.requestToken(webTokenMid, "payment_form", tokenCallback)
           })
         }
-        
+
         // Desktop pay button
         if (payBtnDesktop) {
           payBtnDesktop.addEventListener("click", function () {
@@ -1378,14 +1398,14 @@
         let methodAppleWrapper = document.getElementById("method-apple-wrapper")
         let manualSection = document.getElementById("manual-section")
         let applePaySection = document.getElementById("apple-pay-section")
-        
+
         // Desktop elements
         let methodCreditDesktop = document.getElementById("method-credit-desktop")
         let methodAppleDesktop = document.getElementById("method-apple-desktop")
         let methodAppleWrapperDesktop = document.getElementById("method-apple-wrapper-desktop")
         let manualSectionDesktop = document.getElementById("manual-section-desktop")
         let applePaySectionDesktop = document.getElementById("apple-pay-section-desktop")
-        
+
         // Function to toggle between payment methods
         function togglePaymentMethod() {
             // Mobile
@@ -1396,7 +1416,7 @@
                 if (manualSection) manualSection.style.display = 'none'
                 if (applePaySection) applePaySection.style.display = 'block'
             }
-            
+
             // Desktop
             if (methodCreditDesktop && methodCreditDesktop.checked) {
                 if (manualSectionDesktop) manualSectionDesktop.style.display = 'block'
@@ -1406,22 +1426,22 @@
                 if (applePaySectionDesktop) applePaySectionDesktop.style.display = 'block'
             }
         }
-        
+
         // Add event listeners to radio buttons
         if (methodCredit) methodCredit.addEventListener('change', togglePaymentMethod)
         if (methodApple) methodApple.addEventListener('change', togglePaymentMethod)
         if (methodCreditDesktop) methodCreditDesktop.addEventListener('change', togglePaymentMethod)
         if (methodAppleDesktop) methodAppleDesktop.addEventListener('change', togglePaymentMethod)
-        
+
         // Initialize Apple Pay with total amount (including tip)
         const totalAmount = includeTip ? totalAmountCents : amountCents
         if (window.DatacapApplePay && DatacapApplePay.init) {
           DatacapApplePay.init(tokenCallback, webTokenMid, storeName, applePayMid, (totalAmount / 100).toFixed(2))
         }
-        
+
         // Set initial state (default to credit card)
         togglePaymentMethod()
-        
+
         // dont have google pay mid yet
         // DatacapGooglePay.init(tokenCallback, webTokenMid ,merchantId,googlePayMid,(amountCents / 100).toFixed(2))
     </script>
