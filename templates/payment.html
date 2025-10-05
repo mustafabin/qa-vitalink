@@ -172,6 +172,66 @@
       [data-theme="dark"] input::placeholder {
         color: #303030 !important;
       }
+
+      /* Print styles - ensure text is visible on white paper */
+      @media print {
+        * {
+          background-color: white !important;
+          color: black !important;
+          border-color: #ccc !important;
+        }
+
+        body {
+          background-color: white !important;
+          color: black !important;
+        }
+
+        .bg-slate-50,
+        .bg-white,
+        .bg-slate-100,
+        .bg-violet-600,
+        .bg-emerald-100 {
+          background-color: white !important;
+        }
+
+        .text-slate-900,
+        .text-slate-600,
+        .text-slate-500,
+        .text-slate-700,
+        .text-emerald-700,
+        .text-red-700,
+        .font-medium,
+        .font-semibold {
+          color: black !important;
+        }
+
+        /* Hide interactive elements when printing */
+        .theme-toggle,
+        button,
+        input[type="radio"],
+        input[type="text"],
+        input[type="tel"],
+        input[type="number"],
+        #manual-section,
+        #manual-section-desktop,
+        #apple-pay-section,
+        #apple-pay-section-desktop,
+        #loading-overlay {
+          display: none !important;
+        }
+
+        /* Show only essential content */
+        .shadow-xl,
+        .shadow-sm {
+          box-shadow: none !important;
+        }
+
+        /* Ensure borders are visible */
+        .border-slate-200,
+        .border-slate-300 {
+          border-color: #ccc !important;
+        }
+      }
     </style>
   </head>
   <body class="bg-slate-50 text-slate-900 antialiased">

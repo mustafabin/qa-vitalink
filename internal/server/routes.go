@@ -16,7 +16,4 @@ func registerRoutes(e *echo.Echo, db *gorm.DB) {
 	e.GET("/p/:merchant_id/:page_uid", func(c echo.Context) error { return handleViewPaymentPage(c, db) })
 	e.GET("/qr/:merchant_id/:page_uid", func(c echo.Context) error { return handleQRPaymentPage(c) })
 
-	// Test endpoint
-	e.GET("/api/test-connection", func(c echo.Context) error { return handleTestConnection(c) })
-
 }

@@ -419,49 +419,6 @@ func handleFetchPaymentPageData(c echo.Context, db *gorm.DB) error {
 	})
 }
 
-func handleTestConnection(c echo.Context) error {
-	testURL := c.QueryParam("url")
-	if testURL == "" {
-		testURL = "https://api.vitabyte.info"
-	}
-
-	client := &http.Client{
-		Timeout: 10 * time.Second,
-	}
-
-	log.Printf("Testing connection to %s ...\n", testURL)
-	start := time.Now()
-
-	resp, err := client.Get(testURL)
-	elapsed := time.Since(start)
-
-	if err != nil {
-		log.Printf("Connection test FAILED after %v: %v\n", elapsed, err)
-		return c.JSON(500, map[string]any{
-			"success": false,
-			"error":   err.Error(),
-			"elapsed": elapsed.String(),
-			"url":     testURL,
-		})
-	}
-	defer resp.Body.Close()
-
-	body, _ := io.ReadAll(resp.Body)
-	result := string(body)
-
-	log.Printf("Connection test SUCCESS after %v\n", elapsed)
-	log.Printf("Status: %d\n", resp.StatusCode)
-	log.Printf("Response: %s\n", result)
-
-	return c.JSON(200, map[string]any{
-		"success": true,
-		"result":  result,
-		"status":  resp.StatusCode,
-		"elapsed": elapsed.String(),
-		"url":     testURL,
-	})
-}
-
 func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	merchantID := c.Param("merchant_id")
 	pageUID := c.Param("page_uid")
@@ -492,9 +449,8 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "datacap_token is required"})
 	}
 	log.Println("Charging payment for page:", page.MerchantID, page.PageUID)
-	log.Println("Token:", req.DatacapToken)
 
-	endpoint := "http://dscwgkwsocgk0wsgc4skoogo-172732738126:3000/v1/credit/sale" //! IMPORTANT: change this to the prod url
+	endpoint := "https://api.vitapay.com/v1/credit/sale" //! IMPORTANT: change this to the prod url
 
 	if page.AmountCents < 1 {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "amount must be at least 0.01"})
