@@ -451,7 +451,7 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	log.Println("Charging payment for page:", page.MerchantID, page.PageUID)
 	log.Println("Token:", req.DatacapToken)
 
-	endpoint := "https://api.vitapay.com/v1/credit/sale"
+	endpoint := "https://api.vitabyte.info/v1/credit/sale" //! IMPORTANT: change this to the prod url
 
 	if page.AmountCents < 1 {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "amount must be at least 0.01"})
