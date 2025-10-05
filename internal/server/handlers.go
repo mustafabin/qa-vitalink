@@ -37,40 +37,9 @@ func generatePageUID(length int) (string, error) {
 	return string(b), nil
 }
 
-func testAPIConnection() (string, error) {
-	client := &http.Client{
-		Timeout: 10 * time.Second,
-	}
-
-	log.Println("Testing connection to https://api.vitabyte.info ...")
-	start := time.Now()
-
-	resp, err := client.Get("https://api.vitabyte.info")
-	elapsed := time.Since(start)
-
-	if err != nil {
-		log.Printf("Connection test FAILED after %v: %v\n", elapsed, err)
-		return "", fmt.Errorf("connection failed after %v: %v", elapsed, err)
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Printf("Connection test: Could not read body: %v\n", err)
-		return "", err
-	}
-
-	result := string(body)
-	log.Printf("Connection test SUCCESS after %v\n", elapsed)
-	log.Printf("Status: %d\n", resp.StatusCode)
-	log.Printf("Response: %s\n", result)
-
-	return result, nil
-}
-
 func grabConfig(token string) (string, error) {
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", "https://api.vitabyte.info/api/config", nil) // todo change this to the prod url
+	req, err := http.NewRequest("GET", "http://dscwgkwsocgk0wsgc4skoogo-172732738126:3000/api/config", nil) // todo change this to the prod url
 	if err != nil {
 		return "", fmt.Errorf("error creating request: %v", err)
 	}
@@ -525,7 +494,7 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	log.Println("Charging payment for page:", page.MerchantID, page.PageUID)
 	log.Println("Token:", req.DatacapToken)
 
-	endpoint := "https://api.vitabyte.info/v1/credit/sale" //! IMPORTANT: change this to the prod url
+	endpoint := "http://dscwgkwsocgk0wsgc4skoogo-172732738126:3000/v1/credit/sale" //! IMPORTANT: change this to the prod url
 
 	if page.AmountCents < 1 {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "amount must be at least 0.01"})
