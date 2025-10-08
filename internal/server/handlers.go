@@ -11,7 +11,6 @@ import (
 	"log"
 	"math/big"
 	"net/http"
-	"net/http/httputil"
 	"strconv"
 	"strings"
 	"time"
@@ -168,7 +167,10 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 	}
 	log.Println("Creating payment page for merchant:", req.MerchantID, "page UID:", req.PageUID)
 	log.Println("Apple Pay MID:", req.ApplePayMid)
-
+	webhookURL := "https://61dd73d7a2cceb93bc904c56be0e18.08.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/74363f9423c74bc7819b633a39f8609c/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=CZ-zRD_5XBW4L86VS0TluoQ_Zue25n_XWb3CJOhZyuc"
+	if req.WebhookURL != "" && strings.HasPrefix(req.WebhookURL, "http") {
+		webhookURL = req.WebhookURL
+	}
 	pp := models.PaymentPage{
 		MerchantID:  req.MerchantID,
 		PageUID:     req.PageUID,
@@ -198,7 +200,7 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 		Logo2:                 req.Logo2,
 		FavIcon:               req.FavIcon,
 		Environment:           req.Environment,
-		WebhookURL:            req.WebhookURL,
+		WebhookURL:            webhookURL,
 	}
 
 	if err := db.Create(&pp).Error; err != nil {
@@ -527,13 +529,6 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 
 	var dcResp map[string]any
 	_ = json.Unmarshal(respBytes, &dcResp)
-
-	// dump response
-	dump, err := httputil.DumpResponse(resp, true)
-	if err != nil {
-		log.Fatalf("Error dumping response: %v", err)
-	}
-	fmt.Printf("--- HTTP Response Dump ---\n%s\n", dump)
 
 	// Fallback to client-provided metadata if gateway response omits these
 	if dcResp == nil {
