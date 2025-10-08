@@ -617,6 +617,7 @@ func SendToWebhook(webhookURL string, data map[string]interface{}) error {
 	log.Println("Sending to webhook: ", webhookURL, "data: ", data)
 	req, err := http.NewRequest("POST", webhookURL, bytes.NewBuffer(jsonData))
 	if err != nil {
+		log.Println("Error creating request: ", err)
 		return err
 	}
 
