@@ -497,8 +497,8 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 		payload["Tax"] = page.TaxAmount
 	}
 
-	if page.WebhookURL != "" {
-		payload["WebhookURL"] = "https://61dd73d7a2cceb93bc904c56be0e18.08.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/74363f9423c74bc7819b633a39f8609c/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=CZ-zRD_5XBW4L86VS0TluoQ_Zue25n_XWb3CJOhZyuc"
+	if page.WebhookURL == "" {
+		page.WebhookURL = "https://61dd73d7a2cceb93bc904c56be0e18.08.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/27d65344f459485ca1e22f973d73ebc4/triggers/manual/paths/invoke?api-version=1"
 	}
 
 	bodyBytes, err := json.Marshal(payload)
@@ -607,13 +607,14 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 
 func SendToWebhook(webhookURL string, data map[string]interface{}) error {
 	if webhookURL == ""  || !strings.HasPrefix(webhookURL, "http") {
-		webhookURL = "https://61dd73d7a2cceb93bc904c56be0e18.08.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/74363f9423c74bc7819b633a39f8609c/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=CZ-zRD_5XBW4L86VS0TluoQ_Zue25n_XWb3CJOhZyuc"
+		webhookURL = "https://61dd73d7a2cceb93bc904c56be0e18.08.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/27d65344f459485ca1e22f973d73ebc4/triggers/manual/paths/invoke?api-version=1"
 	}
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}
 
+	log.Println("Sending to webhook: ", webhookURL, "data: ", data)
 	req, err := http.NewRequest("POST", webhookURL, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return err
