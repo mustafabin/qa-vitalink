@@ -11,6 +11,7 @@ import (
 	"log"
 	"math/big"
 	"net/http"
+	"net/http/httputil"
 	"strconv"
 	"strings"
 	"time"
@@ -494,6 +495,10 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 		payload["Tax"] = page.TaxAmount
 	}
 
+	if page.WebhookURL != "" {
+		payload["WebhookURL"] = "https://61dd73d7a2cceb93bc904c56be0e18.08.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/74363f9423c74bc7819b633a39f8609c/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=CZ-zRD_5XBW4L86VS0TluoQ_Zue25n_XWb3CJOhZyuc"
+	}
+
 	bodyBytes, err := json.Marshal(payload)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]any{"error": "marshal error"})
@@ -512,6 +517,7 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 		Timeout: 30 * time.Second,
 	}
 	resp, err := client.Do(reqHttp)
+
 	if err != nil {
 		log.Println("vitapay request failed:", err)
 		return c.JSON(http.StatusBadGateway, map[string]any{"error": "datacap request failed", "details": err.Error()})
@@ -522,7 +528,12 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	var dcResp map[string]any
 	_ = json.Unmarshal(respBytes, &dcResp)
 
-	log.Println("vitapay response:", dcResp)
+	// dump response
+	dump, err := httputil.DumpResponse(resp, true)
+	if err != nil {
+		log.Fatalf("Error dumping response: %v", err)
+	}
+	fmt.Printf("--- HTTP Response Dump ---\n%s\n", dump)
 
 	// Fallback to client-provided metadata if gateway response omits these
 	if dcResp == nil {
