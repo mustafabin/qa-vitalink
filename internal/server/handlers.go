@@ -629,7 +629,9 @@ func SendToWebhook(webhookURL string, data map[string]interface{}) error {
 	resp, _ := client.Do(req)
 
 	if resp.StatusCode != http.StatusOK {
+		log.Println("Error sending to webhook: ", resp.StatusCode)
 		respBytes, _ := io.ReadAll(resp.Body)
+		log.Println("Error sending to webhook: ", resp.StatusCode, "data: ", string(respBytes))
 		return fmt.Errorf("webhook returned: %d, %s", resp.StatusCode, string(respBytes))
 	}
 	log.Println("webhook sent successfully")
