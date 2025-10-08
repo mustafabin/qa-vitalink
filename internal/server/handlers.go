@@ -171,6 +171,9 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 	if req.WebhookURL != "" && strings.HasPrefix(req.WebhookURL, "http") {
 		webhookURL = req.WebhookURL
 	}
+	if req.InvoiceNo == "" {
+		req.InvoiceNo = req.PageUID
+	}
 	pp := models.PaymentPage{
 		MerchantID:  req.MerchantID,
 		PageUID:     req.PageUID,
@@ -506,24 +509,6 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 		return c.JSON(http.StatusInternalServerError, map[string]any{"error": "marshal error"})
 	}
 
-	//TODO REMOVE THIS LATER
-	webhookData := map[string]interface{}{
-		"type":"object",
-		"properties": map[string]interface{}{
-			"invoiceId": page.PageUID, // todo change to invoice no
-			"paymentAmount": float64(page.AmountCents)/100,
-			"paymentMethod": "Credit Card",
-			"transactionId": page.PageUID,
-		},
-		"required": []string{"invoiceId", "paymentAmount", "paymentMethod", "transactionId"},
-	}
-	SendToWebhook(page.WebhookURL, webhookData)
-
-	return c.JSON(http.StatusOK, map[string]any{
-		"approved": true,
-		"message":  "Payment approved",
-	})
-
 	log.Println("forwarding to main server ...")
 
 	reqHttp, err := http.NewRequest(http.MethodPost, endpoint, bytes.NewReader(bodyBytes))
@@ -587,6 +572,9 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 			},
 			"required": []string{"invoiceId", "paymentAmount", "paymentMethod", "transactionId"},
 		}
+		if page.InvoiceNo == "" {
+			webhookData["properties"].(map[string]interface{})["invoiceId"] = page.PageUID
+		}
 		SendToWebhook(page.WebhookURL, webhookData)
 		_ = markPaymentFulfilled(c.Request().Context(), db, &page, dcResp)
 		return c.JSON(http.StatusOK, map[string]any{
@@ -607,7 +595,7 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 
 func SendToWebhook(webhookURL string, data map[string]interface{}) error {
 	if webhookURL == ""  || !strings.HasPrefix(webhookURL, "http") {
-		webhookURL = "https://61dd73d7a2cceb93bc904c56be0e18.08.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/27d65344f459485ca1e22f973d73ebc4/triggers/manual/paths/invoke?api-version=1"
+		webhookURL = "https://61dd73d7a2cceb93bc904c56be0e18.08.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/74363f9423c74bc7819b633a39f8609c/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=CZ-zRD_5XBW4L86VS0TluoQ_Zue25n_XWb3CJOhZyuc"
 	}
 	jsonData, err := json.Marshal(data)
 	if err != nil {
