@@ -506,6 +506,24 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 		return c.JSON(http.StatusInternalServerError, map[string]any{"error": "marshal error"})
 	}
 
+	//TODO REMOVE THIS LATER
+	webhookData := map[string]interface{}{
+		"type":"object",
+		"properties": map[string]interface{}{
+			"invoiceId": page.PageUID, // todo change to invoice no
+			"paymentAmount": float64(page.AmountCents)/100,
+			"paymentMethod": "Credit Card",
+			"transactionId": page.PageUID,
+		},
+		"required": []string{"invoiceId", "paymentAmount", "paymentMethod", "transactionId"},
+	}
+	SendToWebhook(page.WebhookURL, webhookData)
+
+	return c.JSON(http.StatusOK, map[string]any{
+		"approved": true,
+		"message":  "Payment approved",
+	})
+
 	log.Println("forwarding to main server ...")
 
 	reqHttp, err := http.NewRequest(http.MethodPost, endpoint, bytes.NewReader(bodyBytes))
