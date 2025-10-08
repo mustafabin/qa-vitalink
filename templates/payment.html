@@ -531,10 +531,10 @@
           {{ if or .page.Logo .page.Logo2 }}
           <div class="flex justify-center mb-8">
             {{ if .page.Logo }}
-            <img src="{{ .page.Logo }}" alt="Logo" class="h-12 w-auto logo-light" />
+            <img src="{{ .page.Logo }}" alt="Logo" class="h-32 w-auto logo-light" />
             {{ end }}
             {{ if .page.Logo2 }}
-            <img src="{{ .page.Logo2 }}" alt="Logo Dark" class="h-12 w-auto logo-dark" />
+            <img src="{{ .page.Logo2 }}" alt="Logo Dark" class="h-32 w-auto logo-dark" />
             {{ end }}
           </div>
           {{ end }}
@@ -756,7 +756,7 @@
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                   </svg>
-                  <span id="pay_btn_text_desktop">Pay</span>
+                  <span id="pay_btn_text_desktop text-black dark:text-white">Pay</span>
                 </button>
               </div>
               <p id="payment_errors_desktop" class="text-sm font-semibold text-red-700" role="alert" aria-live="polite"></p>
