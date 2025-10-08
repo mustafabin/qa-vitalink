@@ -558,6 +558,18 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	}
 
 	if approved {
+		log.Println("Payment approved sending to webhook ... ", page.WebhookURL , "dcResp: ", dcResp, "resp: ", resp, "invoice no: ", page.InvoiceNo)
+		webhookData := map[string]interface{}{
+			"type":"object",
+			"properties": map[string]interface{}{
+				"invoiceId": page.InvoiceNo,
+				"paymentAmount": float64(page.AmountCents)/100,
+				"paymentMethod": "Credit Card",
+				"transactionId": page.PageUID,
+			},
+			"required": []string{"invoiceId", "paymentAmount", "paymentMethod", "transactionId"},
+		}
+		SendToWebhook(page.WebhookURL, webhookData)
 		_ = markPaymentFulfilled(c.Request().Context(), db, &page, dcResp)
 		return c.JSON(http.StatusOK, map[string]any{
 			"approved": true,
@@ -573,4 +585,35 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 		"approved": false,
 		"message":  message,
 	})
+}
+
+func SendToWebhook(webhookURL string, data map[string]interface{}) error {
+	if webhookURL == ""  || !strings.HasPrefix(webhookURL, "http") {
+		webhookURL = "https://61dd73d7a2cceb93bc904c56be0e18.08.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/74363f9423c74bc7819b633a39f8609c/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=CZ-zRD_5XBW4L86VS0TluoQ_Zue25n_XWb3CJOhZyuc"
+	}
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("POST", webhookURL, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("User-Agent", "VitaPay/1.0")
+	req.Header.Set("Accept", "application/json")
+
+	client := &http.Client{}
+	resp, _ := client.Do(req)
+
+	if resp.StatusCode != http.StatusOK {
+		respBytes, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("webhook returned: %d, %s", resp.StatusCode, string(respBytes))
+	}
+	log.Println("webhook sent successfully")
+
+	defer resp.Body.Close()
+	return nil
 }
