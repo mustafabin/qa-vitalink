@@ -97,6 +97,7 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 		FavIcon               string          `json:"favicon"`
 		Environment           string          `json:"environment"`
 		WebhookURL            string          `json:"webhook_url" default:""`
+		Metadata              map[string]interface{} `json:"metadata"`
 	}
 
 	log.Println("Create payment page request received")
@@ -171,6 +172,11 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 	if req.WebhookURL != "" && strings.HasPrefix(req.WebhookURL, "http") {
 		webhookURL = req.WebhookURL
 	}
+	// if webhook url is in the metadata, use it and it has http prefix
+	if v, ok := req.Metadata["webhook_url"]; ok && strings.HasPrefix(v.(string), "http") {
+		webhookURL = v.(string)
+	}
+
 	if req.InvoiceNo == "" {
 		req.InvoiceNo = req.PageUID
 	}
