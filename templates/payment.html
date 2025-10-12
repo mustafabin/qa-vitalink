@@ -10,13 +10,8 @@
     {{ if .page.Logo }}<meta property="og:image" content="{{ .page.Logo }}">{{ end }}
     {{ if .page.FavIcon }}<link rel="icon" href="{{ .page.FavIcon }}" />{{ end }}
     <script src="https://cdn.tailwindcss.com"></script>
-    {{ if eq .page.Environment "CERT" }}
-    <script src="https://token-cert.dcap.com/v1/client"></script>
-    <script src="https://wallet-cert.dcap.com/v1/client/applepay"></script>
-    {{ else }}
     <script src="https://token.dcap.com/v1/client"></script>
     <script src="https://wallet.dcap.com/v1/client/applepay"></script>
-    {{ end }}
     <style>
       .hidden-content { display: none; }
 
@@ -1495,7 +1490,9 @@
 
         // Initialize Apple Pay with total amount (including tip)
         const totalAmount = includeTip ? totalAmountCents : amountCents
+
         if (window.DatacapApplePay && DatacapApplePay.init) {
+          console.log("Initializing Apple Pay with amount:", (totalAmount / 100).toFixed(2))
           DatacapApplePay.init(tokenCallback, webTokenMid, storeName, applePayMid, (totalAmount / 100).toFixed(2))
         }
 
