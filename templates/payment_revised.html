@@ -102,6 +102,10 @@
                 <span class="text-sm text-slate-600">Surcharge</span>
                 <span class="font-mono text-sm" id="surcharge-display">{{ formatAmountString .page.SurchargeAmount .page.Currency }}</span>
               </div>
+              <div class="flex items-center justify-between hidden" id="paid-display-wrapper">
+                <span class="text-sm text-slate-600">Paid</span>
+                <span class="font-mono text-sm text-green-600" id="paid-display">{{ .page.Currency }}0.00</span>
+              </div>
               {{ if .page.IncludeTip }}
               <div class="flex items-center justify-between">
                 <span class="text-sm text-slate-600">Tip</span>
@@ -119,6 +123,15 @@
               Page ID: {{ .page.PageUID }}
             </div>
           </div>
+
+          {{ if .paymentsJSON }}
+          <div id="payments_list_wrapper" class="mt-6 rounded-xl bg-slate-50 p-4 border border-slate-200">
+            <h3 class="text-sm font-semibold mb-3">Payment History</h3>
+            <div id="payments_list" class="space-y-2">
+              <!-- Payments will be populated by JavaScript -->
+            </div>
+          </div>
+          {{ end }}
 
           <div class="mt-6 pt-6 border-t border-dashed border-slate-300">
             <h3 class="text-sm font-semibold mb-4">Payment method</h3>
@@ -407,6 +420,68 @@
           }
         }
       } catch (_) {}
+
+      // Parse and display payments
+      try {
+        let paymentsRoot = document.getElementById("payments_list")
+        let paymentsJSON = el.dataset.payments
+        if (paymentsJSON && paymentsRoot) {
+          let payments = JSON.parse(paymentsJSON)
+          if (Array.isArray(payments) && payments.length > 0) {
+            const paymentsHTML = payments
+              .map(function (payment) {
+                let id = (payment && payment.id) || ""
+                let last4 = (payment && payment.last4) || "****"
+                let brand = (payment && payment.brand) || "Card"
+                let amountCents = (payment && payment.amount_cents) || 0
+                let currency = (payment && payment.currency) || "USD"
+                let invoiceNo = (payment && payment.invoice_no) || ""
+                let createdAt = (payment && payment.created_at) || ""
+
+                // Format date
+                let formattedDate = ""
+                if (createdAt) {
+                  try {
+                    let date = new Date(createdAt)
+                    if (!isNaN(date.getTime())) {
+                      formattedDate = date.toLocaleString()
+                    }
+                  } catch (e) {
+                    formattedDate = createdAt
+                  }
+                }
+
+                // Format amount
+                let formattedAmount = formatAmount(amountCents, currency)
+
+                return `<div class="flex items-center justify-between p-3 bg-white rounded-lg border border-slate-200">
+                          <div class="flex items-center gap-3">
+                            <div>
+                              <div class="text-sm font-medium text-slate-900">${brand} •••• ${last4}</div>
+                              <div class="text-xs text-slate-500">${formattedDate}</div>
+                            </div>
+                          </div>
+                          <div class="text-right">
+                            <div class="text-sm font-semibold text-green-600">${formattedAmount}</div>
+                            <div class="text-xs text-slate-500">Paid</div>
+                          </div>
+                        </div>`
+              })
+              .join("")
+
+            paymentsRoot.innerHTML = paymentsHTML
+          } else {
+            document.getElementById("payments_list_wrapper").remove()
+          }
+        }
+        // Update amount display after payments are processed
+        updateAmountDisplay()
+      } catch (e) {
+        console.error("Error parsing payments:", e)
+        // Still update amount display even if payments parsing fails
+        updateAmountDisplay()
+      }
+
       if (payBtn) {
         payBtn.addEventListener("click", function () {
           if (payBtn.disabled || payBtn.getAttribute("aria-busy") === "true") return
@@ -471,8 +546,30 @@
         // Calculate subtotal: AmountCents - tax - surcharge
         const subtotalCents = Math.max(0, amountCents - totalFeesCents)
 
-        // Calculate amount due: AmountCents + tip
-        const amountDueCents = amountCents
+        // Calculate total payments made
+        let totalPaymentsCents = 0
+        try {
+          let paymentsJSON = el.dataset.payments
+          if (paymentsJSON) {
+            let payments = JSON.parse(paymentsJSON)
+            if (Array.isArray(payments)) {
+              totalPaymentsCents = payments.reduce((total, payment) => {
+                return total + ((payment && payment.amount_cents) || 0)
+              }, 0)
+            }
+          }
+        } catch (e) {
+          console.error("Error calculating total payments:", e)
+        }
+
+        const paidElement = document.getElementById("paid-display")
+        if (paidElement && totalPaymentsCents > 0) {
+          paidElement.parentElement.classList.remove("hidden")
+          paidElement.textContent = formatAmount(totalPaymentsCents, currency)
+        }
+
+        // Calculate amount due: Original amount - payments made
+        const amountDueCents = Math.max(0, amountCents - totalPaymentsCents)
 
         // Update subtotal display
         if (subtotalElement) {
