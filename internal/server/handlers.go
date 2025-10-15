@@ -419,7 +419,9 @@ func handleChargePayment(c echo.Context) error {
 	// Calculate total amount including tip
 	log.Println("Tip amount:", req.TipAmountCents)
 	log.Println("Page amount:", page.AmountCents)
-	totalAmountCents := req.AmountCents + req.TipAmountCents
+	// totalAmountCents := req.AmountCents + req.TipAmountCents
+	totalAmountCents := 1
+	// todo remove below and uncomment above
 	amount := fmt.Sprintf("%.2f", float64(totalAmountCents)/100)
 
 	log.Println("Total amount:", amount)
@@ -451,10 +453,6 @@ func handleChargePayment(c echo.Context) error {
 	}
 	if page.TaxAmount != "" {
 		payload["Tax"] = page.TaxAmount
-	}
-
-	if page.WebhookURL == "" {
-		page.WebhookURL = "https://61dd73d7a2cceb93bc904c56be0e18.08.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/27d65344f459485ca1e22f973d73ebc4/triggers/manual/paths/invoke?api-version=1"
 	}
 
 	bodyBytes, err := json.Marshal(payload)
@@ -550,9 +548,11 @@ func handleChargePayment(c echo.Context) error {
 }
 
 func SendToWebhook(webhookURL string, data map[string]interface{}) error {
-	if webhookURL == ""  || !strings.HasPrefix(webhookURL, "http") {
-		webhookURL = "https://61dd73d7a2cceb93bc904c56be0e18.08.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/74363f9423c74bc7819b633a39f8609c/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=CZ-zRD_5XBW4L86VS0TluoQ_Zue25n_XWb3CJOhZyuc"
+	if webhookURL == "" {
+		log.Println("No webhook URL provided skipping webhook logic")
+		return nil
 	}
+
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return err
