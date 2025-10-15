@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"time"
 )
@@ -21,6 +22,7 @@ func grabCheckValues(merchantID string, pageUID string) (*CheckResponse, error) 
 		return nil, err
 	}
 	var checkResponse CheckResponse
+	log.Println("body: ", string(body))
 	err = json.Unmarshal(body, &checkResponse)
 	if err != nil {
 		return nil, err

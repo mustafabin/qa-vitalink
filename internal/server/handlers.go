@@ -258,7 +258,15 @@ func handleViewPaymentPage(c echo.Context) error {
 	log.Println("Rendering payment page for:", pp.MerchantID, pp.PageUID)
 	log.Println("Apple Pay MID:", pp.ApplePayMid)
 	log.Println("Google Pay MID:", pp.GooglePayMid)
-	return c.Render(http.StatusOK, "payment.html", map[string]any{"page": pp})
+	if len(pp.Payments) > 0 {
+		paymentJSON, _ := json.Marshal(pp.Payments[0])
+		log.Println("Payments:", string(paymentJSON))
+	}
+	paymentsJSON, _ := json.Marshal(pp.Payments)
+	return c.Render(http.StatusOK, "payment_revised.html", map[string]any{
+		"page": pp,
+		"paymentsJSON": string(paymentsJSON),
+	})
 }
 
 func handleQRPaymentPage(c echo.Context) error {
