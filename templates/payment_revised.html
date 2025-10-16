@@ -65,37 +65,6 @@
           {{ end }}
 
 
-          {{ if .page.IncludeTip }}
-          <div class="mt-6 rounded-xl bg-slate-50 p-4 border border-slate-200">
-            <h3 class="text-sm font-semibold mb-3">Add tip</h3>
-            <div class="space-y-3">
-              <div class="grid grid-cols-3 gap-2" id="tip-percentages">
-                <!-- Tip percentage buttons will be populated by JavaScript -->
-              </div>
-              <div class="space-y-2">
-                <label for="custom-tip" class="block text-sm font-medium text-slate-700">Custom tip amount</label>
-                <div class="relative">
-                  <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span class="text-slate-500 text-sm font-medium">{{ .page.Currency }}</span>
-                  </div>
-                  <input
-                    type="number"
-                    id="custom-tip"
-                    placeholder="0.00"
-                    step="0.01"
-                    min="0"
-                    class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600 bg-white"
-                  />
-                </div>
-              </div>
-              <div class="flex items-center justify-between text-sm">
-                <span class="text-slate-600">Tip amount:</span>
-                <span class="font-mono" id="tip-amount">{{ .page.Currency }}0.00</span>
-              </div>
-            </div>
-          </div>
-          {{ end }}
-
           <div class="mt-6 rounded-xl bg-slate-50 p-4 border border-slate-200">
             <div class="space-y-2">
               <div class="flex items-center justify-between">
@@ -114,12 +83,6 @@
                 <span class="text-sm text-slate-600">Paid</span>
                 <span class="font-mono text-sm text-green-600" id="paid-display">{{ .page.Currency }}0.00</span>
               </div>
-              {{ if .page.IncludeTip }}
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-slate-600">Tip</span>
-                <span class="font-mono text-sm" id="tip-amount">{{ .page.Currency }}0.00</span>
-              </div>
-              {{ end }}
               <div class="border-t border-slate-200 pt-2">
                 <div class="flex items-center justify-between">
                   <span class="text-sm font-semibold text-slate-700">Amount due</span>
