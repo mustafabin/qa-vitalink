@@ -17,7 +17,15 @@
     <script src="https://token.dcap.com/v1/client"></script>
     <script src="https://wallet.dcap.com/v1/client/applepay"></script>
     {{ end }}
-    <!-- <link rel="stylesheet" href="./style.css" /> -->
+    <style>
+      input[type=number]::-webkit-inner-spin-button,
+      input[type=number]::-webkit-outer-spin-button {
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
+          margin: 0;
+      }
+    </style>
   </head>
   <body class="bg-slate-50 text-slate-900 antialiased">
     <button id="theme-toggle" class="absolute top-4 right-4 cursor-pointer w-10 h-10 rounded-full flex items-center justify-center" aria-label="Toggle theme">
@@ -253,7 +261,7 @@
                     class="h-12 w-full rounded-xl border border-slate-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
                 </div>
               </div>
-              <div class="pt-1">
+              <div class="pt-1 space-y-2">
                 <button
                   id="pay_button"
                   type="button"
@@ -265,6 +273,15 @@
                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                   </svg>
                   <span id="pay_btn_text">Pay</span>
+                </button>
+                <button
+                  id="split_pay_button"
+                  type="button"
+                  class="w-full h-10 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium inline-flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                  </svg>
+                  <span>Split Payment</span>
                 </button>
               </div>
               <p id="payment_errors" class="text-sm font-semibold text-red-700" role="alert" aria-live="polite"></p>
@@ -304,7 +321,81 @@
       data-include-tip="{{ .page.IncludeTip }}"
       data-allowed-tip-percentages='{{ .page.AllowedTipPercentages }}'
       data-payments='{{ .paymentsJSON }}'
-      ></div>
+      >    </div>
+
+    <!-- Split Payment Dialog -->
+    <div id="split-payment-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-slate-900">Split Payment</h3>
+            <button id="close-split-modal" class="text-slate-400 hover:text-slate-600">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-6 h-6">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="mb-4">
+            <p class="text-sm text-slate-600 mb-2">Amount due now: <span id="split-total-amount" class="font-semibold"></span></p>
+            <p class="text-xs text-slate-500">Choose how you'd like to split this payment</p>
+          </div>
+
+          <div class="space-y-4">
+            <!-- Regular Intervals -->
+            <div>
+              <h4 class="text-sm font-medium text-slate-900 mb-3">Regular Intervals</h4>
+              <div class="grid grid-cols-2 gap-2">
+                <button class="split-option-btn p-3 border border-slate-200 rounded-lg hover:border-violet-300 hover:bg-violet-50 transition-colors" data-type="interval" data-value="2">
+                  <div class="text-sm font-medium">1/2 Amount Due</div>
+                  <div class="text-xs text-slate-500" id="split-2-amount"></div>
+                </button>
+                <button class="split-option-btn p-3 border border-slate-200 rounded-lg hover:border-violet-300 hover:bg-violet-50 transition-colors" data-type="interval" data-value="3">
+                  <div class="text-sm font-medium">1/3 Amount Due</div>
+                  <div class="text-xs text-slate-500" id="split-3-amount"></div>
+                </button>
+                <button class="split-option-btn p-3 border border-slate-200 rounded-lg hover:border-violet-300 hover:bg-violet-50 transition-colors" data-type="interval" data-value="4">
+                  <div class="text-sm font-medium">1/4 Amount Due</div>
+                  <div class="text-xs text-slate-500" id="split-4-amount"></div>
+                </button>
+                <button class="split-option-btn p-3 border border-slate-200 rounded-lg hover:border-violet-300 hover:bg-violet-50 transition-colors" data-type="interval" data-value="6">
+                  <div class="text-sm font-medium">1/6 Amount Due</div>
+                  <div class="text-xs text-slate-500" id="split-6-amount"></div>
+                </button>
+              </div>
+            </div>
+
+            <!-- Custom Amount -->
+            <div>
+              <h4 class="text-sm font-medium text-slate-900 mb-3">Custom Amount</h4>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span class="text-slate-500 text-sm font-medium" id="split-currency-symbol"></span>
+                </div>
+                <input
+                  type="number"
+                  id="custom-split-amount"
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0.01"
+                  class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600"
+                />
+              </div>
+              <p class="text-xs text-slate-500 mt-1">Enter the amount you want to pay now</p>
+            </div>
+          </div>
+
+          <div class="flex gap-3 mt-6">
+            <button id="cancel-split" class="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors">
+              Cancel
+            </button>
+            <button id="confirm-split" class="flex-1 px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+              Pay Now
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     </body>
     <script>
@@ -334,7 +425,7 @@
       let msg = document.getElementById("msg")
 
       let chargeUrl = "/api/payments/" + merchantId + "/" + pageUid + "/charge"
-      const tokenCallback = function (response) {
+      const tokenCallback = function (response, amountToCharge) {
         setPayLoading(false)
         setMsg("")
 
@@ -360,7 +451,7 @@
           brand = response.Brand || response.brand || response.CardBrand || undefined
           console.log("[Datacap] Tokenization response:", response)
         } catch (_) {}
-        handleChargeWithToken(token, last4, brand)
+        handleChargeWithToken(token, last4, brand, amountToCharge)
           .then(function (ok) {
             setMsg(ok)
           })
@@ -607,7 +698,7 @@
         }
       }
 
-      function handleChargeWithToken(datacapToken, last4, brand) {
+      function handleChargeWithToken(datacapToken, last4, brand, amountToCharge) {
         return fetch(chargeUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -616,7 +707,7 @@
             last4: last4,
             brand: brand,
             tip_amount_cents: 0, // todo tips later
-            amount_cents: amountCents,
+            amount_cents: amountToCharge,
           }),
         }).then(async function (res) {
           let body = {}
@@ -707,6 +798,176 @@
       updateAmountDisplay()
 
       togglePaymentMethod()
+
+      // Split Payment Logic
+      let splitPayBtn = document.getElementById("split_pay_button")
+      let splitModal = document.getElementById("split-payment-modal")
+      let closeSplitModal = document.getElementById("close-split-modal")
+      let cancelSplit = document.getElementById("cancel-split")
+      let confirmSplit = document.getElementById("confirm-split")
+      let customSplitAmount = document.getElementById("custom-split-amount")
+      let splitOptionBtns = document.querySelectorAll(".split-option-btn")
+      let selectedSplitAmount = 0
+      let splitTotalValue = 0 // This will hold the current split amount (initially balance, then user's choice)
+
+      // Open split payment modal
+      if (splitPayBtn) {
+        splitPayBtn.addEventListener("click", function() {
+          openSplitModal()
+        })
+      }
+
+      // Close modal handlers
+      if (closeSplitModal) {
+        closeSplitModal.addEventListener("click", closeSplitModalHandler)
+      }
+      if (cancelSplit) {
+        cancelSplit.addEventListener("click", closeSplitModalHandler)
+      }
+
+      // Close modal when clicking outside
+      if (splitModal) {
+        splitModal.addEventListener("click", function(e) {
+          if (e.target === splitModal) {
+            closeSplitModalHandler()
+          }
+        })
+      }
+
+      // Handle split option buttons
+      splitOptionBtns.forEach(btn => {
+        btn.addEventListener("click", function() {
+          // Remove selected state from all buttons
+          splitOptionBtns.forEach(b => b.classList.remove("border-violet-600", "bg-violet-50"))
+
+          // Add selected state to clicked button
+          this.classList.add("border-violet-600", "bg-violet-50")
+
+          // Calculate split amount
+          let totalDue = totalAmountCents
+          let numPayments = parseInt(this.dataset.value)
+          selectedSplitAmount = Math.ceil(totalDue / numPayments)
+
+          // Update splitTotalValue to the calculated split amount
+          splitTotalValue = selectedSplitAmount
+
+          // Update the amount display to show the split amount
+          updateAmountDisplayForSplit()
+
+          // Clear custom input
+          if (customSplitAmount) {
+            customSplitAmount.value = ""
+          }
+
+          // Enable confirm button
+          if (confirmSplit) {
+            confirmSplit.disabled = false
+          }
+        })
+      })
+
+      // Handle custom amount input
+      if (customSplitAmount) {
+        customSplitAmount.addEventListener("input", function() {
+          // Remove selected state from interval buttons
+          splitOptionBtns.forEach(b => b.classList.remove("border-violet-600", "bg-violet-50"))
+
+          let customAmount = parseFloat(this.value) || 0
+          selectedSplitAmount = Math.round(customAmount * 100) // Convert to cents
+
+          // Update splitTotalValue to the custom amount
+          splitTotalValue = selectedSplitAmount
+
+          // Update the amount display to show the custom split amount
+          updateAmountDisplayForSplit()
+
+          // Enable/disable confirm button
+          if (confirmSplit) {
+            confirmSplit.disabled = customAmount <= 0 || customAmount > (totalAmountCents / 100)
+          }
+        })
+      }
+
+      // Handle confirm split payment
+      if (confirmSplit) {
+        confirmSplit.addEventListener("click", function() {
+          if (selectedSplitAmount > 0) {
+            processSplitPayment(selectedSplitAmount)
+          }
+        })
+      }
+
+      function openSplitModal() {
+        if (splitModal) {
+          // Initialize splitTotalValue with current balance
+          splitTotalValue = totalAmountCents
+
+          // Update total amount display
+          let splitTotalAmount = document.getElementById("split-total-amount")
+          if (splitTotalAmount) {
+            splitTotalAmount.textContent = formatAmount(totalAmountCents, currency)
+          }
+
+          // Update currency symbol
+          let splitCurrencySymbol = document.getElementById("split-currency-symbol")
+          if (splitCurrencySymbol) {
+            splitCurrencySymbol.textContent = currency === "USD" ? "$" : currency + " "
+          }
+
+          let totalDue = totalAmountCents
+          for (let i = 2; i <= 6; i++) {
+            if (i === 5) continue // Skip 5, we only show 2,3,4,6
+            let splitAmount = Math.ceil(totalDue / i)
+            let splitAmountEl = document.getElementById(`split-${i}-amount`)
+            if (splitAmountEl) {
+              splitAmountEl.textContent = formatAmount(splitAmount, currency) + " each"
+            }
+          }
+
+          selectedSplitAmount = 0
+          splitOptionBtns.forEach(b => b.classList.remove("border-violet-600", "bg-violet-50"))
+          if (customSplitAmount) {
+            customSplitAmount.value = ""
+          }
+          if (confirmSplit) {
+            confirmSplit.disabled = true
+          }
+
+          splitModal.classList.remove("hidden")
+        }
+      }
+
+      function closeSplitModalHandler() {
+        if (splitModal) {
+          splitModal.classList.add("hidden")
+        }
+      }
+
+      function updateAmountDisplayForSplit() {
+        const amountDisplayElement = document.getElementById("split-total-amount")
+        if (amountDisplayElement) {
+          amountDisplayElement.textContent = formatAmount(splitTotalValue, currency)
+        }
+      }
+
+      function processSplitPayment(splitAmountCents) {
+        closeSplitModalHandler()
+        if (splitAmountCents <= 0) {
+          return
+        }
+        // Process payment with split amount
+        if (!window.DatacapWebToken) {
+          if (paymentErrors) paymentErrors.textContent = "Token library unavailable"
+          return
+        }
+
+        clearErrors()
+        setMsg("")
+        setPayLoading(true)
+
+        console.log("Processing split payment for amount:", formatAmount(splitAmountCents, currency))
+        DatacapWebToken.requestToken(webTokenMid, "payment_form", (response) => tokenCallback(response, splitAmountCents))
+      }
 
       // dont have google pay mid yet
       // DatacapGooglePay.init(tokenCallback, webTokenMid ,merchantId,googlePayMid,(amountCents / 100).toFixed(2))

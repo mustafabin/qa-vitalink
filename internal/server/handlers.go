@@ -400,6 +400,7 @@ func handleChargePayment(c echo.Context) error {
 		Last4          string `json:"last4"`
 		Brand          string `json:"brand"`
 		TipAmountCents int64  `json:"tip_amount_cents"`
+		TaxAmountCents int64  `json:"tax_amount_cents"`
 		AmountCents    int64  `json:"amount_cents"`
 	}
 
@@ -424,43 +425,27 @@ func handleChargePayment(c echo.Context) error {
 	}
 
 	log.Println("Calculating total amount including tip ...")
-	// Calculate total amount including tip
-	log.Println("Tip amount:", req.TipAmountCents)
-	log.Println("Page amount:", page.AmountCents)
-	// totalAmountCents := req.AmountCents + req.TipAmountCents
-	totalAmountCents := 1
-	// todo remove below and uncomment above
-	amount := fmt.Sprintf("%.2f", float64(totalAmountCents)/100)
+
+	amount := fmt.Sprintf("%.2f", float64(req.AmountCents)/100)
+	tipAmount := fmt.Sprintf("%.2f", float64(req.TipAmountCents)/100)
+	taxAmount := fmt.Sprintf("%.2f", float64(req.TaxAmountCents)/100)
 
 	log.Println("Total amount:", amount)
+	log.Println("Tip amount:", tipAmount)
+	log.Println("Tax amount:", taxAmount)
 
 	payload := map[string]string{
 		"Token":        req.DatacapToken,
 		"Amount":       amount,
-		"CustomerCode": page.InvoiceNo, // InvoiceNo
+		"Tip":    tipAmount,
+		"Tax":    taxAmount,
+		"CustomerCode": page.InvoiceNo,
 		"PartialAuth":  "Disallow",
 		"CardHolderID": "Allow_V2",
 		"InvoiceNo":    page.InvoiceNo,
 		"MerchantID":   page.MerchantID,
 		"PageUID":      page.PageUID,
 		"WebhookURL":   page.WebhookURL,
-	}
-
-	log.Println("Setting payload ...")
-	if page.InvoiceNo != "" {
-		payload["InvoiceNo"] = page.InvoiceNo
-	}
-	if page.PaymentFeeAmount != "" {
-		payload["PaymentFee"] = page.PaymentFeeAmount
-	}
-	if page.PaymentFeeDescription != "" {
-		payload["PaymentFeeDescription"] = page.PaymentFeeDescription
-	}
-	if page.SurchargeAmount != "" {
-		payload["SurchargeWithLookup"] = page.SurchargeAmount
-	}
-	if page.TaxAmount != "" {
-		payload["Tax"] = page.TaxAmount
 	}
 
 	bodyBytes, err := json.Marshal(payload)
@@ -492,15 +477,8 @@ func handleChargePayment(c echo.Context) error {
 	var dcResp map[string]any
 	_ = json.Unmarshal(respBytes, &dcResp)
 
-	// Fallback to client-provided metadata if gateway response omits these
 	if dcResp == nil {
 		dcResp = map[string]any{}
-	}
-	if _, ok := dcResp["Last4"]; !ok && strings.TrimSpace(req.Last4) != "" {
-		dcResp["Last4"] = req.Last4
-	}
-	if _, ok := dcResp["Brand"]; !ok && strings.TrimSpace(req.Brand) != "" {
-		dcResp["Brand"] = req.Brand
 	}
 
 	approved := false
