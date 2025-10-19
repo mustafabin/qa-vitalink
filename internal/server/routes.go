@@ -7,6 +7,7 @@ import (
 
 func registerRoutes(e *echo.Echo, db *gorm.DB) {
 	e.Static("/.well-known", "public/.well-known")
+	e.Static("/assets", "public/assets")
 	e.File("/applePayIntegrationTest.html", "public/applePayIntegrationTest.html")
 	e.File("/", "public/index.html")
 	e.POST("/api/payment-pages", func(c echo.Context) error { return handleCreatePaymentPage(c, db) })

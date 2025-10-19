@@ -25,19 +25,26 @@
           appearance: none;
           margin: 0;
       }
+      .logo-img {
+        transition: all 0.3s ease;
+        max-width: 330px;
+        max-height: 120px;
+        margin-left: auto;
+        margin-right: auto;
+      }
     </style>
   </head>
-  <body data-theme="dark" class="data-[theme=dark]:bg-stone-900 data-[theme=light]:bg-stone-100 antialiased">
-    <button id="theme-toggle" class="absolute top-4 right-4 cursor-pointer w-10 h-10 z-10 bg-stone-100/50 data-[theme=dark]:bg-stone-900/50 backdrop-blur-sm rounded-full flex items-center justify-center" aria-label="Toggle theme">
-      <svg data-theme="dark" id="theme-icon" class="data-[theme=dark]:text-white data-[theme=light]:text-stone-600 w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  <body data-theme="light" class="data-[theme=dark]:bg-stone-900 data-[theme=light]:bg-stone-100 antialiased">
+    <button id="theme-toggle" class="absolute top-4 right-4 cursor-pointer w-10 h-10 z-50 bg-stone-100/50 data-[theme=dark]:bg-stone-900/50 backdrop-blur-sm rounded-full flex items-center justify-center" aria-label="Toggle theme">
+      <svg data-theme="light" id="theme-icon" class="data-[theme=dark]:text-white data-[theme=light]:text-stone-600 w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
       </svg>
     </button>
-    <div class="px-4 py-6 lg:py-12 flex justify-center" id="payment-content-wrapper">
+    <div data-theme="light" class="px-4 py-6 lg:py-12 data-[theme=dark]:text-white data-[theme=light]:text-stone-800 flex justify-center data-[theme=dark]:bg-stone-900 data-[theme=light]:bg-stone-100" id="payment-content-wrapper">
       <div class="w-full max-w-md lg:max-w-6xl" id="payment-content-mobile">
-        <div data-theme="dark" class="bg-white drop-shadow-md border border-slate-200 rounded-2xl shadow-xl data-[theme=dark]:drop-shadow-white/50 data-[theme=dark]:shadow-white/30 data-[theme=dark]:border-none  overflow-hidden lg:bg-transparent lg:border-0 lg:shadow-none lg:overflow-visible lg:rounded-none">
+        <div data-theme="light" class=" drop-shadow-md  rounded-2xl shadow-xl data-[theme=dark]:drop-shadow-gray-500/20 data-[theme=dark]:shadow-gray-500/20 data-[theme=dark]:border-none  overflow-hidden lg:bg-transparent lg:border-0 lg:shadow-none lg:overflow-visible lg:rounded-none">
           <div class="lg:grid lg:grid-cols-[3.5fr_2fr] lg:gap-0 lg:rounded-[32px] lg:overflow-hidden lg:shadow-2xl">
-            <div class="relative flex flex-col gap-6 bg-white px-0 py-0 lg:px-12 lg:py-12 xl:px-12 xl:py-12 lg:rounded-l-[32px] lg:rounded-r-none lg:bg-slate-900 lg:text-white lg:justify-between lg:min-h-[520px] overflow-hidden">
+            <div data-theme="light" class="relative data-[theme=dark]:bg-stone-950 data-[theme=light]:bg-white flex flex-col gap-6 px-0 py-0 lg:px-12 lg:py-12 xl:px-12 xl:py-12 lg:rounded-l-[32px] lg:rounded-r-none lg:bg-slate-900 border-none lg:text-white lg:justify-between lg:min-h-[520px] overflow-hidden">
               {{ if .page.FeatureGraphic }}
               <div class="h-48 w-full bg-slate-100 rounded-2xl overflow-hidden rounded-b-[0px] xl:rounded-b-xl lg:hidden">
                 <img src="{{ .page.FeatureGraphic }}" alt="Feature graphic" class="w-full h-full object-cover" />
@@ -50,13 +57,13 @@
               {{ if or .page.Logo .page.Logo2 }}
               <div class="lg:hidden flex justify-center lg:justify-start">
                 {{ if .page.Logo }}
-                <img src="{{ .page.Logo }}" alt="Logo" class="h-24 w-auto logo-light" />
+                <img class="logo-img" src="{{ .page.Logo }}" alt="Logo" class="h-24 w-auto logo-light" />
                 {{ end }}
               </div>
               {{ end }}
               <div class="text-center lg:text-left lg:hidden">
-                <div class="mx-auto lg:mx-0 mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 lg:bg-white/20 lg:text-white">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5">
+                <div data-theme="light" class="mx-auto lg:mx-0 mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 lg:bg-white/20 lg:text-white data-[theme=dark]:bg-stone-800 data-[theme=dark]:text-stone-100 data-[theme=light]:bg-slate-100 data-[theme=light]:text-slate-600">
+                  <svg data-theme="light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 data-[theme=dark]:text-stone-100 data-[theme=light]:text-slate-600">
                     <path fill-rule="evenodd" d="M6.75 3A2.25 2.25 0 0 0 4.5 5.25v13.5A2.25 2.25 0 0 0 6.75 21h10.5A2.25 2.25 0 0 0 19.5 18.75V5.25A2.25 2.25 0 0 0 17.25 3H6.75Zm.75 3a.75.75 0 0 0 0 1.5h9a.75.75 0 0 0 0-1.5h-9Zm-.75 4.5c0-.414.336-.75.75-.75h9a.75.75 0 0 1 0 1.5h-9a.75.75 0 0 1-.75-.75Zm.75 3.75a.75.75 0 0 0 0 1.5h5.25a.75.75 0 0 0 0-1.5H7.5Z" clip-rule="evenodd" />
                   </svg>
                 </div>
@@ -64,44 +71,56 @@
               </div>
               <div class="relative z-10 flex flex-col mx-5 lg:mx-0 gap-6">
                 {{ if .page.Items }}
-                <div class="rounded-xl bg-slate-50 lg:font-semibold p-4 border border-slate-200 lg:bg-white/10 lg:border-white/20 lg:backdrop-blur-sm">
+                <div data-theme="light" class="rounded-xl p-4 border
+                bg-slate-50 border-slate-200
+                data-[theme=dark]:bg-stone-900/50 data-[theme=dark]:border-stone-800
+                data-[theme=light]:bg-slate-50 data-[theme=light]:border-slate-200
+                lg:!bg-white/10 lg:!border-white/20 lg:!backdrop-blur-sm">
                   <h4 class="text-sm font-semibold mb-1 lg:text-white">Items</h4>
                   <div id="items_list" class="text-sm text-slate-700 space-y-1 lg:text-slate-100"></div>
                 </div>
                 {{ end }}
 
-                <div class="rounded-xl bg-slate-50 lg:font-semibold p-4 border border-slate-200 lg:bg-white/10 lg:border-white/20 lg:backdrop-blur-sm">
-                  <div class="space-y-2">
+                <div data-theme="light" class="rounded-xl p-4 border
+                bg-slate-50 border-slate-200
+                data-[theme=dark]:bg-stone-900/50 data-[theme=dark]:border-stone-800
+                data-[theme=light]:bg-slate-50 data-[theme=light]:border-slate-200
+                lg:!bg-white/10 lg:!border-white/20 lg:!backdrop-blur-sm">
+                  <div  data-theme="light" class="space-y-2 font-semibold data-[theme=dark]:text-white data-[theme=light]:text-stone-800 lg:!text-slate-200">
                     <div class="flex items-center justify-between">
-                      <span class="text-sm text-slate-600 lg:text-slate-200">Subtotal</span>
-                      <span class="font-mono text-sm text-slate-900 lg:text-white" id="subtotal-display">{{ .page.Currency }}0.00</span>
+                      <span class="text-sm">Subtotal</span>
+                      <span class="font-mono text-sm" id="subtotal-display">{{ .page.Currency }}0.00</span>
                     </div>
                     <div class="flex items-center justify-between">
-                      <span class="text-sm text-slate-600 lg:text-slate-200">Tax</span>
-                      <span class="font-mono text-sm text-slate-900 lg:text-white" id="tax-display">{{ formatAmountString .page.TaxAmount .page.Currency }}</span>
+                      <span class="text-sm">Tax</span>
+                      <span class="font-mono text-sm" id="tax-display">{{ formatAmountString .page.TaxAmount .page.Currency }}</span>
                     </div>
                     <div class="flex items-center justify-between">
-                      <span class="text-sm text-slate-600 lg:text-slate-200">Surcharge</span>
-                      <span class="font-mono text-sm text-slate-900 lg:text-white" id="surcharge-display">{{ formatAmountString .page.SurchargeAmount .page.Currency }}</span>
+                      <span class="text-sm">Surcharge</span>
+                      <span class="font-mono text-sm" id="surcharge-display">{{ formatAmountString .page.SurchargeAmount .page.Currency }}</span>
                     </div>
                     <div class="flex items-center justify-between hidden" id="paid-display-wrapper">
-                      <span class="text-sm text-slate-600 lg:text-slate-200">Paid</span>
-                      <span class="font-mono text-sm text-green-600 lg:text-green-400 lg:font-bold" id="paid-display">{{ .page.Currency }}0.00</span>
+                      <span class="text-sm">Paid</span>
+                      <span class="font-mono text-sm" id="paid-display">{{ .page.Currency }}0.00</span>
                     </div>
                     <div class="border-t border-slate-200 pt-2 lg:border-white/20">
                       <div class="flex items-center justify-between">
-                        <span class="text-sm font-bold text-slate-700 lg:text-white">Amount due</span>
-                        <span class="font-mono text-xl font-semibold text-slate-900 lg:text-white" id="amount-display">{{ formatAmount .page.AmountCents .page.Currency }}</span>
+                        <span class="text-sm">Amount due</span>
+                        <span class="font-mono text-xl text-green-500" id="amount-display">{{ formatAmount .page.AmountCents .page.Currency }}</span>
                       </div>
                     </div>
                   </div>
-                  <div class="mt-2 text-[11px] text-slate-500 lg:text-slate-200">
+                  <div class="mt-2 text-[11px]">
                     Page ID: {{ .page.PageUID }}
                   </div>
                 </div>
 
                 {{ if .paymentsJSON }}
-                <div id="payments_list_wrapper" class="rounded-xl bg-slate-50 p-4 border border-slate-200 lg:bg-white/10 lg:border-white/20 lg:backdrop-blur-sm">
+                <div id="payments_list_wrapper" data-theme="light" class="rounded-xl p-4 border
+                bg-slate-50 border-slate-200
+                data-[theme=dark]:bg-stone-900/50 data-[theme=dark]:border-stone-800
+                data-[theme=light]:bg-slate-50 data-[theme=light]:border-slate-200
+                lg:!bg-white/10 lg:!border-white/20 lg:!backdrop-blur-sm">
                   <h3 class="text-sm font-semibold mb-3 lg:text-white">Payment History</h3>
                   <div id="payments_list" class="space-y-2 text-slate-700 lg:text-slate-100">
                     <!-- Payments will be populated by JavaScript -->
@@ -114,11 +133,11 @@
                 <img class="mx-auto mt-3 rounded-lg border border-slate-200 shadow-sm lg:mx-0 lg:border-white/20 lg:shadow-xl" src="/qr/{{ .page.MerchantID }}/{{ .page.PageUID }}" alt="Share QR code" />
               </div>
             </div>
-            <div class="px-6 py-8 xs:px-8 sm:px-8 lg:px-10 lg:py-12 bg-white border-t border-slate-200 lg:border-t-0 lg:border-l lg:border-slate-200 lg:rounded-r-[32px]">
-              <div class="mt-6 pt-6 border-t border-dashed border-slate-300 lg:mt-0 lg:pt-0 lg:border-0">
+            <div data-theme="light" class="data-[theme=dark]:bg-stone-950 data-[theme=light]:bg-white px-6 py-8 xs:px-8 sm:px-8 lg:px-10 lg:py-12 border-none data-[theme=dark]:border-stone-700 data-[theme=light]:border-slate-200 lg:border-t-0 lg:border-l data-[theme=dark]:border-white/20 data-[theme=light]:border-slate-200 lg:rounded-r-[32px]">
+              <div class="border-slate-300 lg:mt-0 lg:pt-0 lg:border-0">
                 <div class="hidden lg:block w-full flex items-center justify-center flex-col">
                   {{ if .page.Logo }}
-                  <img src="{{ .page.Logo }}" alt="Logo" class="h-24 w-auto mx-auto logo-light" />
+                  <img class="logo-img" src="{{ .page.Logo }}" alt="Logo" class="h-24 w-auto mx-auto logo-light" />
                   {{ end }}
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 text-slate-400 mx-auto">
                     <path fill-rule="evenodd" d="M6.75 3A2.25 2.25 0 0 0 4.5 5.25v13.5A2.25 2.25 0 0 0 6.75 21h10.5A2.25 2.25 0 0 0 19.5 18.75V5.25A2.25 2.25 0 0 0 17.25 3H6.75Zm.75 3a.75.75 0 0 0 0 1.5h9a.75.75 0 0 0 0-1.5h-9Zm-.75 4.5c0-.414.336-.75.75-.75h9a.75.75 0 0 1 0 1.5h-9a.75.75 0 0 1-.75-.75Zm.75 3.75a.75.75 0 0 0 0 1.5h5.25a.75.75 0 0 0 0-1.5H7.5Z" clip-rule="evenodd" />
@@ -130,30 +149,31 @@
                 <div class="grid grid-cols-1 gap-3">
                   <!-- Credit Card Option -->
                   <label
-                    class="group relative flex items-center p-4 border-2 border-slate-200 rounded-xl cursor-pointer bg-white hover:border-violet-300 hover:bg-violet-50 transition-all duration-200">
+                    data-theme="light"
+                    class="group relative flex items-center p-4 border-2 data-[theme=dark]:border-stone-700 data-[theme=light]:border-slate-200 data-[theme=dark]:bg-stone-900 data-[theme=light]:bg-white rounded-xl cursor-pointer hover:border-violet-300 hover:bg-violet-50 transition-all duration-200">
                     <input type="radio" name="method" id="method-credit" value="credit" checked class="sr-only" />
                     <div class="flex items-center justify-between w-full">
-                      <div class="flex items-center gap-3">
+                      <div class="flex items-center gap-2">
                         <div class="w-6 h-6 rounded-full border-2 border-slate-300 group-has-[input:checked]:border-violet-600 group-has-[input:checked]:bg-violet-600 flex items-center justify-center transition-all duration-200">
                           <div class="w-2 h-2 rounded-full bg-white opacity-0 group-has-[input:checked]:opacity-100 transition-opacity duration-200"></div>
                         </div>
                         <div>
-                          <div class="font-semibold text-slate-900">Credit Card</div>
-                          <div class="text-xs text-slate-500">Visa, Mastercard, Amex, Discover</div>
+                          <div data-theme="light" class="font-semibold data-[theme=dark]:text-white data-[theme=light]:text-stone-800">Credit Card</div>
                         </div>
                       </div>
                       <div class="flex items-center gap-1">
-                        <div class="w-6 h-4 rounded bg-slate-800 text-white text-[7px] font-bold flex items-center justify-center">VISA</div>
-                        <div class="w-6 h-4 rounded bg-indigo-600 text-white text-[7px] font-bold flex items-center justify-center">MC</div>
-                        <div class="w-6 h-4 rounded bg-slate-800 text-white text-[7px] font-bold flex items-center justify-center">AMEX</div>
-                        <div class="w-6 h-4 rounded bg-orange-500 text-white text-[7px] font-bold flex items-center justify-center">DISC</div>
+                        <img data-theme="light" src="/assets/visa.svg" alt="Visa" class="w-[35px] h-[25px] data-[theme=dark]:filter data-[theme=dark]:grayscale data-[theme=dark]:brightness-200 data-[theme=dark]:contrast-[0.5] data-[theme=dark]:invert-[1] data-[theme=dark]:invert-0" />
+                        <img src="/assets/mastercard.svg" alt="Mastercard" class="w-[35px] h-[25px]" />
+                        <img src="/assets/amex.svg" alt="American Express" class="w-[35px] h-[25px]" />
+                        <img src="/assets/discover.svg" alt="Discover" class="w-[35px] h-[25px]" />
                       </div>
                     </div>
                   </label>
 
                   <label
                     id="method-apple-wrapper"
-                    class="group relative flex items-center p-4 border-2 border-slate-200 rounded-xl cursor-pointer bg-white hover:border-violet-300 hover:bg-violet-50 transition-all duration-200">
+                    data-theme="light"
+                    class="group relative flex items-center p-4 border-2 data-[theme=dark]:border-stone-700 data-[theme=light]:border-slate-200 data-[theme=dark]:bg-stone-900 data-[theme=light]:bg-white rounded-xl cursor-pointer hover:border-violet-300 hover:bg-violet-50 transition-all duration-200">
                     <input type="radio" name="method" id="method-apple" value="apple" class="sr-only" />
                     <div class="flex items-center justify-between w-full">
                       <div class="flex items-center gap-3">
@@ -161,8 +181,8 @@
                           <div class="w-2 h-2 rounded-full bg-white opacity-0 group-has-[input:checked]:opacity-100 transition-opacity duration-200"></div>
                         </div>
                         <div>
-                          <div class="font-semibold text-slate-900">Apple Pay</div>
-                          <div class="text-xs text-slate-500">Pay with Touch ID or Face ID</div>
+                          <div data-theme="light" class="font-semibold data-[theme=dark]:text-white data-[theme=light]:text-stone-800">Apple Pay</div>
+                          <div data-theme="light" class="text-xs data-[theme=dark]:text-stone-400 data-[theme=light]:text-stone-500">Pay with Touch ID or Face ID</div>
                         </div>
                       </div>
                       <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-black text-white">
@@ -176,9 +196,9 @@
                 </div>
               </div>
 
-              <div id="manual-section" class="mt-4">
-                <form id="payment_form" onsubmit="return false;" autocomplete="on" class="space-y-4">
-                  <div>
+              <div id="manual-section" class="mt-4 w-full">
+                <form id="payment_form" onsubmit="return false;" autocomplete="on" class="space-y-4 w-full ">
+                  <div class="w-full">
                     <label for="cardNumber" class="block text-sm font-medium mb-1">Card number</label>
                     <input
                       type="tel"
@@ -188,7 +208,8 @@
                       placeholder="**** **** **** ****"
                       autocomplete="cc-number"
                       required
-                      class="h-12 w-full rounded-xl border border-slate-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
+                      data-theme="light"
+                      class="h-12 w-full rounded-xl border data-[theme=dark]:border-stone-700 data-[theme=light]:border-slate-200 data-[theme=dark]:bg-stone-900 data-[theme=light]:bg-white px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
                   </div>
                   <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
@@ -202,7 +223,8 @@
                         maxlength="2"
                         autocomplete="cc-exp-month"
                         required
-                        class="h-12 w-full rounded-xl border border-slate-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
+                        data-theme="light"
+                        class="h-12 w-full rounded-xl border data-[theme=dark]:border-stone-700 data-[theme=light]:border-slate-200 data-[theme=dark]:bg-stone-900 data-[theme=light]:bg-white px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
                     </div>
                     <div>
                       <label for="expYear" class="block text-sm font-medium mb-1">Expiry year</label>
@@ -215,7 +237,8 @@
                         maxlength="4"
                         autocomplete="cc-exp-year"
                         required
-                        class="h-12 w-full rounded-xl border border-slate-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
+                        data-theme="light"
+                        class="h-12 w-full rounded-xl border data-[theme=dark]:border-stone-700 data-[theme=light]:border-slate-200 data-[theme=dark]:bg-stone-900 data-[theme=light]:bg-white px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
                     </div>
                   </div>
                   <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -230,7 +253,8 @@
                         maxlength="4"
                         autocomplete="cc-csc"
                         required
-                        class="h-12 w-full rounded-xl border border-slate-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
+                        data-theme="light"
+                        class="h-12 w-full rounded-xl border data-[theme=dark]:border-stone-700 data-[theme=light]:border-slate-200 data-[theme=dark]:bg-stone-900 data-[theme=light]:bg-white px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
                     </div>
                     <div>
                       <label for="postal" class="block text-sm font-medium mb-1">Postal code</label>
@@ -239,7 +263,8 @@
                         data-token="postal_code"
                         placeholder="12345"
                         autocomplete="postal-code"
-                        class="h-12 w-full rounded-xl border border-slate-200 px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
+                        data-theme="light"
+                        class="h-12 w-full rounded-xl border data-[theme=dark]:border-stone-700 data-[theme=light]:border-slate-200 data-[theme=dark]:bg-stone-900 data-[theme=light]:bg-white px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
                     </div>
                   </div>
                   <div class="pt-1 space-y-2">
@@ -258,11 +283,12 @@
                     <button
                       id="split_pay_button"
                       type="button"
-                      class="w-full h-10 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium inline-flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4">
+                      data-theme="light"
+                      class="w-full h-10 rounded-xl font-medium inline-flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed data-[theme=dark]:bg-stone-800 data-[theme=dark]:hover:bg-stone-600 data-[theme=light]:bg-slate-200 data-[theme=light]:hover:bg-slate-300 data-[theme=dark]:text-stone-200 data-[theme=light]:text-slate-700">
+                      <svg data-theme="light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 data-[theme=dark]:text-stone-200 data-[theme=light]:text-slate-700">
                         <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
                       </svg>
-                      <span>Split Payment</span>
+                      <span data-theme="light" class="data-[theme=dark]:text-stone-200 data-[theme=light]:text-slate-700">Split Payment</span>
                     </button>
                   </div>
                   <p id="payment_errors" class="text-sm font-semibold text-red-700" role="alert" aria-live="polite"></p>
@@ -305,15 +331,17 @@
       data-include-tip="{{ .page.IncludeTip }}"
       data-allowed-tip-percentages='{{ .page.AllowedTipPercentages }}'
       data-payments='{{ .paymentsJSON }}'
-      >    </div>
+      data-logo="{{ .page.Logo }}"
+      data-logo2="{{ .page.Logo2 }}"
+      ></div>
 
     <!-- Split Payment Dialog -->
-    <div id="split-payment-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
-      <div class="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+    <div id="split-payment-modal" data-theme="light" class="fixed inset-0 data-[theme=dark]:bg-stone-950/50 data-[theme=light]:bg-white/30  hidden z-50 flex items-center justify-center p-4">
+      <div data-theme="light" class="data-[theme=dark]:bg-stone-900 data-[theme=light]:bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
         <div class="p-6">
           <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-slate-900">Split Payment</h3>
-            <button id="close-split-modal" class="text-slate-400 hover:text-slate-600">
+            <h3 data-theme="light" class="text-lg font-semibold data-[theme=dark]:text-white data-[theme=light]:text-stone-800">Split Payment</h3>
+            <button data-theme="light" id="close-split-modal" class="data-[theme=dark]:text-stone-400 data-[theme=light]:text-stone-600 hover:text-slate-600">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-6 h-6">
                 <path d="M18 6L6 18M6 6l12 12"/>
               </svg>
@@ -321,40 +349,40 @@
           </div>
 
           <div class="mb-4">
-            <p class="text-sm text-slate-600 mb-2">Amount due now: <span id="split-total-amount" class="font-semibold"></span></p>
-            <p class="text-xs text-slate-500">Choose how you'd like to split this payment</p>
+            <p data-theme="light" class="text-sm data-[theme=dark]:text-stone-400 data-[theme=light]:text-stone-600 mb-2">Amount due now: <span id="split-total-amount" class="font-semibold"></span></p>
+            <p data-theme="light" class="text-xs data-[theme=dark]:text-stone-400 data-[theme=light]:text-stone-500">Choose how you'd like to split this payment</p>
           </div>
 
           <div class="space-y-4">
             <!-- Regular Intervals -->
             <div>
-              <h4 class="text-sm font-medium text-slate-900 mb-3">Percentages</h4>
+              <h4 data-theme="light" class="text-sm font-medium data-[theme=dark]:text-white data-[theme=light]:text-stone-800 mb-3">Percentages</h4>
               <div class="grid grid-cols-2 gap-2">
-                <button class="split-option-btn p-3 border border-slate-200 rounded-lg hover:border-violet-300 hover:bg-violet-50 transition-colors" data-type="interval" data-value="2">
-                  <div class="text-sm font-medium">Split by 2</div>
-                  <div class="text-xs text-slate-500" id="split-2-amount"></div>
+                <button data-selected="false" class="split-option-btn p-3 border border-slate-200 rounded-lg hover:border-violet-300 hover:bg-violet-400/20 data-[selected=true]:border-violet-600 data-[selected=true]:bg-violet-400/20 transition-colors" data-type="interval" data-value="2">
+                  <div data-theme="light" class="text-sm font-medium data-[theme=dark]:text-white data-[theme=light]:text-stone-800">Split by 2</div>
+                  <div data-theme="light" class="text-xs data-[theme=dark]:text-stone-400 data-[theme=light]:text-stone-500" id="split-2-amount"></div>
                 </button>
-                <button class="split-option-btn p-3 border border-slate-200 rounded-lg hover:border-violet-300 hover:bg-violet-50 transition-colors" data-type="interval" data-value="3">
-                  <div class="text-sm font-medium">Split by 3</div>
-                  <div class="text-xs text-slate-500" id="split-3-amount"></div>
+                <button data-selected="false" class="split-option-btn p-3 border border-slate-200 rounded-lg hover:border-violet-300 hover:bg-violet-400/20 data-[selected=true]:border-violet-600 data-[selected=true]:bg-violet-400/20 transition-colors" data-type="interval" data-value="3">
+                  <div data-theme="light" class="text-sm font-medium data-[theme=dark]:text-white data-[theme=light]:text-stone-800">Split by 3</div>
+                  <div data-theme="light" class="text-xs data-[theme=dark]:text-stone-400 data-[theme=light]:text-stone-500" id="split-3-amount"></div>
                 </button>
-                <button class="split-option-btn p-3 border border-slate-200 rounded-lg hover:border-violet-300 hover:bg-violet-50 transition-colors" data-type="interval" data-value="4">
-                  <div class="text-sm font-medium">Split by 4</div>
-                  <div class="text-xs text-slate-500" id="split-4-amount"></div>
+                <button data-selected="false" class="split-option-btn p-3 border border-slate-200 rounded-lg hover:border-violet-300 hover:bg-violet-400/20 data-[selected=true]:border-violet-600 data-[selected=true]:bg-violet-400/20 transition-colors" data-type="interval" data-value="4">
+                  <div data-theme="light" class="text-sm font-medium data-[theme=dark]:text-white data-[theme=light]:text-stone-800">Split by 4</div>
+                  <div data-theme="light" class="text-xs data-[theme=dark]:text-stone-400 data-[theme=light]:text-stone-500" id="split-4-amount"></div>
                 </button>
-                <button class="split-option-btn p-3 border border-slate-200 rounded-lg hover:border-violet-300 hover:bg-violet-50 transition-colors" data-type="interval" data-value="6">
-                  <div class="text-sm font-medium">Split by 5</div>
-                  <div class="text-xs text-slate-500" id="split-5-amount"></div>
+                <button data-selected="false" class="split-option-btn p-3 border border-slate-200 rounded-lg hover:border-violet-300 hover:bg-violet-400/20 data-[selected=true]:border-violet-600 data-[selected=true]:bg-violet-400/20 transition-colors" data-type="interval" data-value="5">
+                  <div data-theme="light" class="text-sm font-medium data-[theme=dark]:text-white data-[theme=light]:text-stone-800">Split by 5</div>
+                  <div data-theme="light" class="text-xs data-[theme=dark]:text-stone-400 data-[theme=light]:text-stone-500" id="split-5-amount"></div>
                 </button>
               </div>
             </div>
 
             <!-- Custom Amount -->
             <div>
-              <h4 class="text-sm font-medium text-slate-900 mb-3">Custom Amount</h4>
+              <h4 data-theme="light" class="text-sm font-medium data-[theme=dark]:text-white data-[theme=light]:text-stone-800 mb-3">Custom Amount</h4>
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <span class="text-slate-500 text-sm font-medium" id="split-currency-symbol"></span>
+                  <span data-theme="light" class="text-sm font-medium data-[theme=dark]:text-stone-400 data-[theme=light]:text-stone-500" id="split-currency-symbol"></span>
                 </div>
                 <input
                   type="number"
@@ -362,18 +390,19 @@
                   placeholder="0.00"
                   step="0.01"
                   min="0.01"
-                  class="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600"
+                  data-theme="light"
+                  class="block w-full pl-10 pr-3 py-3 border data-[theme=dark]:border-stone-700 data-[theme=light]:border-slate-200 data-[theme=dark]:bg-stone-900 data-[theme=light]:bg-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600"
                 />
               </div>
-              <p class="text-xs text-slate-500 mt-1">Enter the amount you want to pay now</p>
+              <p data-theme="light" class="text-xs data-[theme=dark]:text-stone-400 data-[theme=light]:text-stone-500 mt-1">Enter the amount you want to pay now</p>
             </div>
           </div>
 
           <div class="flex gap-3 mt-6">
-            <button id="cancel-split" class="flex-1 px-4 py-2 border border-slate-200 rounded-lg text-slate-700 hover:bg-slate-50 transition-colors">
+            <button data-theme="light" id="cancel-split" class="flex-1 px-4 py-2 border data-[theme=dark]:border-stone-700 data-[theme=light]:border-slate-200 data-[theme=dark]:bg-stone-900 data-[theme=light]:bg-white rounded-lg data-[theme=dark]:text-stone-400 data-[theme=light]:text-stone-700 hover:bg-slate-50 transition-colors">
               Cancel
             </button>
-            <button id="confirm-split" class="flex-1 px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+            <button data-theme="light" id="confirm-split" class="flex-1 px-4 font-semibold py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
               Pay Now
             </button>
           </div>
@@ -382,7 +411,9 @@
     </div>
 
     </body>
-    <script>
+    <script async defer>
+      // document.addEventListener("DOMContentLoaded", function() {
+        // })
       let el = document.getElementById("page-data")
       console.log("payments: ", el.dataset.payments)
       let merchantId = el.dataset.merchantId
@@ -405,6 +436,16 @@
       let payBtnSpinner = document.getElementById("pay_btn_spinner")
       let payBtnText = document.getElementById("pay_btn_text")
       let paymentErrors = document.getElementById("payment_errors")
+
+      let splitPayBtn = document.getElementById("split_pay_button")
+      let splitModal = document.getElementById("split-payment-modal")
+      let closeSplitModal = document.getElementById("close-split-modal")
+      let cancelSplit = document.getElementById("cancel-split")
+      let confirmSplit = document.getElementById("confirm-split")
+      let customSplitAmount = document.getElementById("custom-split-amount")
+      let splitOptionBtns = document.querySelectorAll(".split-option-btn")
+      let selectedSplitAmount = 0
+      let splitTotalValue = 0 // This will hold the current split amount (initially balance, then user's choice)
 
       let msg = document.getElementById("msg")
 
@@ -484,10 +525,10 @@
                 let quantity = (it && it.quantity) || 0
                 let total = (it && it.total) || 0
 
-                return `<div class="flex items-center justify-between text-slate-700 lg:text-slate-100 lg:font-semibold">
+                return `<div data-theme="light" class="flex items-center justify-between data-[theme=dark]:text-stone-100 data-[theme=light]:text-slate-900 lg:!text-slate-100 lg:font-semibold">
                                 <div>
                                   <div class="font-medium lg:font-semibold">${title}</div>
-                                  <div class="text-[12px] text-slate-500 lg:text-slate-300">${desc}</div>
+                                  <div class="text-[12px]">${desc}</div>
                                 </div>
                                 <div class="font-mono text-sm lg:font-bold">${(Number(price) / 100).toFixed(2)}</div>
                               </div>`
@@ -532,16 +573,16 @@
                 // Format amount
                 let formattedAmount = formatAmount(amountCents, currency)
 
-                return `<div class="flex items-center justify-between p-3 rounded-lg border border-slate-200 lg:bg-white/10 lg:border-white/20 lg:backdrop-blur-sm">
+                return `<div data-theme="light" class="flex items-center justify-between p-3 rounded-lg border data-[theme=dark]:border-stone-800 data-[theme=light]:border-slate-200 data-[theme=dark]:text-stone-100 data-[theme=light]:text-slate-900 lg:!text-slate-100 lg:font-semibold lg:bg-white/10 lg:border-white/20 lg:backdrop-blur-sm">
                           <div class="flex items-center gap-3">
                             <div>
-                              <div class="text-sm font-semibold text-slate-900 lg:text-slate-200">${brand} •••• ${last4}</div>
-                              <div class="text-xs text-slate-500 lg:text-slate-100">${formattedDate}</div>
+                              <div class="text-sm font-semibold">${brand} •••• ${last4}</div>
+                              <div class="text-xs">${formattedDate}</div>
                             </div>
                           </div>
                           <div class="text-right">
                             <div class="text-base font-bold text-green-600 lg:text-green-400">${formattedAmount}</div>
-                            <div class="text-xs font-medium text-slate-500 lg:text-slate-100">Paid</div>
+                            <div class="text-xs font-medium">Paid</div>
                           </div>
                         </div>`
               })
@@ -583,12 +624,16 @@
       const totalAmount = amountCents
       if (window.DatacapApplePay && DatacapApplePay.init) {
         console.log("Initializing Apple Pay ... ", webTokenMid, storeName, applePayMid, (totalAmount / 100).toFixed(2))
-        DatacapApplePay.init(tokenCallback, webTokenMid, storeName, applePayMid, (totalAmount / 100).toFixed(2))
+        try {
+          DatacapApplePay.init(tokenCallback, webTokenMid, storeName, applePayMid, (totalAmount / 100).toFixed(2))
+        } catch (e) {
+          console.log("Error initializing Apple Pay:", e)
+        }
       }
 
       // Function to format amount (helper function)
       function formatAmount(cents, currency) {
-        const amount = (cents / 100).toFixed(2)
+        const amount = (cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
         return currency === "USD" ? `$${amount}` : `${amount} ${currency}`
       }
 
@@ -748,9 +793,19 @@
         function applyTheme(theme) {
           // html.setAttribute("data-theme", theme)
           // grab all elements that have a data-theme attribute
+          localStorage.setItem("theme", theme)
           const elements = document.querySelectorAll("[data-theme]")
           elements.forEach(element => {
             element.setAttribute("data-theme", theme)
+          })
+
+          const logos = document.querySelectorAll(".logo-img")
+          logos.forEach(logo => {
+            if (theme === "dark") {
+              logo.src = el.dataset.logo2
+            } else {
+              logo.src = el.dataset.logo
+            }
           })
 
           // Update icon
@@ -790,16 +845,7 @@
 
       togglePaymentMethod()
 
-      // Split Payment Logic
-      let splitPayBtn = document.getElementById("split_pay_button")
-      let splitModal = document.getElementById("split-payment-modal")
-      let closeSplitModal = document.getElementById("close-split-modal")
-      let cancelSplit = document.getElementById("cancel-split")
-      let confirmSplit = document.getElementById("confirm-split")
-      let customSplitAmount = document.getElementById("custom-split-amount")
-      let splitOptionBtns = document.querySelectorAll(".split-option-btn")
-      let selectedSplitAmount = 0
-      let splitTotalValue = 0 // This will hold the current split amount (initially balance, then user's choice)
+
 
       // Open split payment modal
       if (splitPayBtn) {
@@ -828,11 +874,10 @@
       // Handle split option buttons
       splitOptionBtns.forEach(btn => {
         btn.addEventListener("click", function() {
-          // Remove selected state from all buttons
-          splitOptionBtns.forEach(b => b.classList.remove("border-violet-600", "bg-violet-50"))
+          splitOptionBtns.forEach(b => b.dataset.selected = "false")
 
-          // Add selected state to clicked button
-          this.classList.add("border-violet-600", "bg-violet-50")
+          btn.dataset.selected = "true"
+
 
           // Calculate split amount
           let totalDue = totalAmountCents
