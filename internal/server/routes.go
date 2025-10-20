@@ -7,13 +7,14 @@ import (
 
 func registerRoutes(e *echo.Echo, db *gorm.DB) {
 	e.Static("/.well-known", "public/.well-known")
+	e.Static("/assets", "public/assets")
 	e.File("/applePayIntegrationTest.html", "public/applePayIntegrationTest.html")
 	e.File("/", "public/index.html")
 	e.POST("/api/payment-pages", func(c echo.Context) error { return handleCreatePaymentPage(c, db) })
-	e.POST("/api/payments/:merchant_id/:page_uid/charge", func(c echo.Context) error { return handleChargePayment(c, db) })
+	e.POST("/api/payments/:merchant_id/:page_uid/charge", func(c echo.Context) error { return handleChargePayment(c) })
 	e.GET("/api/payment-pages/:merchant_id/:page_uid/data", func(c echo.Context) error { return handleFetchPaymentPageData(c, db) })
 
-	e.GET("/p/:merchant_id/:page_uid", func(c echo.Context) error { return handleViewPaymentPage(c, db) })
+	e.GET("/p/:merchant_id/:page_uid", func(c echo.Context) error { return handleViewPaymentPage(c) })
 	e.GET("/qr/:merchant_id/:page_uid", func(c echo.Context) error { return handleQRPaymentPage(c) })
 
 }

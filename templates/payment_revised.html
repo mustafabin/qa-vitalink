@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ .page.Title }}</title>
+    <meta name="description" content="{{ .page.Description }}">
+    <meta property="og:title" content="{{ .page.Title }}">
+    <meta property="og:description" content="{{ .page.Description }}">
+    {{ if .page.Logo }}<meta property="og:image" content="{{ .page.Logo }}">{{ end }}
+    {{ if .page.FavIcon }}<link rel="icon" href="{{ .page.FavIcon }}" />{{ end }}
+    <script src="https://cdn.tailwindcss.com"></script>
+    {{ if eq .page.Environment "CERT" }}
+    <script src="https://token-cert.dcap.com/v1/client"></script>
+    <script src="https://wallet-cert.dcap.com/v1/client/applepay"></script>
+    {{ else }}
+    <script src="https://token.dcap.com/v1/client"></script>
+    <script src="https://wallet.dcap.com/v1/client/applepay"></script>
+    {{ end }}
+    <style>
+      input[type=number]::-webkit-inner-spin-button,
+      input[type=number]::-webkit-outer-spin-button {
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
+          margin: 0;
+      }
+      .logo-img {
+        transition: all 0.3s ease;
+        max-width: 330px;
+        max-height: 120px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+    </style>
+  </head>
+  <body data-theme="light" class="data-[theme=dark]:bg-stone-900 data-[theme=light]:bg-stone-100 antialiased">
+    <button id="theme-toggle" class="absolute top-4 right-4 cursor-pointer w-10 h-10 z-50 bg-stone-100/50 data-[theme=dark]:bg-stone-900/50 backdrop-blur-sm rounded-full flex items-center justify-center" aria-label="Toggle theme">
+      <svg data-theme="light" id="theme-icon" class="data-[theme=dark]:text-white data-[theme=light]:text-stone-600 w-6 h-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+      </svg>
+    </button>
+    <div data-theme="light" class="px-4 py-6 lg:py-12 data-[theme=dark]:text-white data-[theme=light]:text-stone-800 flex justify-center data-[theme=dark]:bg-stone-900 data-[theme=light]:bg-stone-100" id="payment-content-wrapper">
+      <div class="w-full max-w-md lg:max-w-6xl" id="payment-content-mobile">
+        <div data-theme="light" class=" drop-shadow-md  rounded-2xl shadow-xl data-[theme=dark]:drop-shadow-gray-500/20 data-[theme=dark]:shadow-gray-500/20 data-[theme=dark]:border-none  overflow-hidden lg:bg-transparent lg:border-0 lg:shadow-none lg:overflow-visible lg:rounded-none">
+          <div class="lg:grid lg:grid-cols-[3.5fr_2fr] lg:gap-0 lg:rounded-[32px] lg:overflow-hidden lg:shadow-2xl">
+            <div data-theme="light" class="relative data-[theme=dark]:bg-stone-950 data-[theme=light]:bg-white flex flex-col gap-6 px-0 py-0 lg:px-12 lg:py-12 xl:px-12 xl:py-12 lg:rounded-l-[32px] lg:rounded-r-none lg:bg-slate-900 border-none lg:text-white lg:justify-between lg:min-h-[520px] overflow-hidden">
+              {{ if .page.FeatureGraphic }}
+              <div class="h-48 w-full bg-slate-100 rounded-2xl overflow-hidden rounded-b-[0px] xl:rounded-b-xl lg:hidden">
+                <img src="{{ .page.FeatureGraphic }}" alt="Feature graphic" class="w-full h-full object-cover" />
+              </div>
+              <div class="hidden lg:block absolute inset-0">
+                <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('{{ .page.FeatureGraphic }}');"></div>
+                <div class="absolute inset-0 bg-gradient-to-br from-slate-950/80 via-slate-900/70 to-slate-900/40"></div>
+              </div>
+              {{ end }}
+              {{ if or .page.Logo .page.Logo2 }}
+              <div class="lg:hidden flex justify-center lg:justify-start">
+                {{ if .page.Logo }}
+                <img class="logo-img" src="{{ .page.Logo }}" alt="Logo" class="h-24 w-auto logo-light" />
+                {{ end }}
+              </div>
+              {{ end }}
+              <div class="text-center lg:text-left lg:hidden">
+                <div data-theme="light" class="mx-auto lg:mx-0 mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 lg:bg-white/20 lg:text-white data-[theme=dark]:bg-stone-800 data-[theme=dark]:text-stone-100 data-[theme=light]:bg-slate-100 data-[theme=light]:text-slate-600">
+                  <svg data-theme="light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 data-[theme=dark]:text-stone-100 data-[theme=light]:text-slate-600">
+                    <path fill-rule="evenodd" d="M6.75 3A2.25 2.25 0 0 0 4.5 5.25v13.5A2.25 2.25 0 0 0 6.75 21h10.5A2.25 2.25 0 0 0 19.5 18.75V5.25A2.25 2.25 0 0 0 17.25 3H6.75Zm.75 3a.75.75 0 0 0 0 1.5h9a.75.75 0 0 0 0-1.5h-9Zm-.75 4.5c0-.414.336-.75.75-.75h9a.75.75 0 0 1 0 1.5h-9a.75.75 0 0 1-.75-.75Zm.75 3.75a.75.75 0 0 0 0 1.5h5.25a.75.75 0 0 0 0-1.5H7.5Z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <p id="receipt-date" class="text-xs text-slate-500 mt-1 lg:text-slate-200"></p>
+              </div>
+              <div class="relative z-10 flex flex-col mx-5 lg:mx-0 gap-6">
+                {{ if .page.Items }}
+                <div data-theme="light" class="rounded-xl p-4 border
+                bg-slate-50 border-slate-200
+                data-[theme=dark]:bg-stone-900/50 data-[theme=dark]:border-stone-800
+                data-[theme=light]:bg-slate-50 data-[theme=light]:border-slate-200
+                lg:!bg-white/10 lg:!border-white/20 lg:!backdrop-blur-sm">
+                  <h4 class="text-sm font-semibold mb-1 lg:text-white">Items</h4>
+                  <div id="items_list" class="text-sm text-slate-700 space-y-1 lg:text-slate-100"></div>
+                </div>
+                {{ end }}
+
+                <div data-theme="light" class="rounded-xl p-4 border
+                bg-slate-50 border-slate-200
+                data-[theme=dark]:bg-stone-900/50 data-[theme=dark]:border-stone-800
+                data-[theme=light]:bg-slate-50 data-[theme=light]:border-slate-200
+                lg:!bg-white/10 lg:!border-white/20 lg:!backdrop-blur-sm">
+                  <div  data-theme="light" class="space-y-2 font-semibold data-[theme=dark]:text-white data-[theme=light]:text-stone-800 lg:!text-slate-200">
+                    <div class="flex items-center justify-between">
+                      <span class="text-sm">Subtotal</span>
+                      <span class="font-mono text-sm" id="subtotal-display">{{ .page.Currency }}0.00</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-sm">Tax</span>
+                      <span class="font-mono text-sm" id="tax-display">{{ formatAmountString .page.TaxAmount .page.Currency }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <span class="text-sm">Surcharge</span>
+                      <span class="font-mono text-sm" id="surcharge-display">{{ formatAmountString .page.SurchargeAmount .page.Currency }}</span>
+                    </div>
+                    <div class="flex items-center justify-between hidden" id="paid-display-wrapper">
+                      <span class="text-sm">Paid</span>
+                      <span class="font-mono text-sm" id="paid-display">{{ .page.Currency }}0.00</span>
+                    </div>
+                    <div class="border-t border-slate-200 pt-2 lg:border-white/20">
+                      <div class="flex items-center justify-between">
+                        <span class="text-sm">Amount due</span>
+                        <span class="font-mono text-xl text-green-500" id="amount-display">{{ formatAmount .page.AmountCents .page.Currency }}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mt-2 text-[11px]">
+                    Page ID: {{ .page.PageUID }}
+                  </div>
+                </div>
+
+                {{ if .paymentsJSON }}
+                <div id="payments_list_wrapper" data-theme="light" class="rounded-xl p-4 border
+                bg-slate-50 border-slate-200
+                data-[theme=dark]:bg-stone-900/50 data-[theme=dark]:border-stone-800
+                data-[theme=light]:bg-slate-50 data-[theme=light]:border-slate-200
+                lg:!bg-white/10 lg:!border-white/20 lg:!backdrop-blur-sm">
+                  <h3 class="text-sm font-semibold mb-3 lg:text-white">Payment History</h3>
+                  <div id="payments_list" class="space-y-2 text-slate-700 lg:text-slate-100">
+                    <!-- Payments will be populated by JavaScript -->
+                  </div>
+                </div>
+                {{ end }}
+              </div>
+              <div class="hidden lg:block relative z-10 mt-6 pt-6 text-center border-t border-dashed border-slate-200 lg:text-left lg:mt-auto lg:pt-0 lg:border-0">
+                <p class="text-xs text-slate-600 lg:text-slate-200">Share this page</p>
+                <img class="mx-auto mt-3 rounded-lg border border-slate-200 shadow-sm lg:mx-0 lg:border-white/20 lg:shadow-xl" src="/qr/{{ .page.MerchantID }}/{{ .page.PageUID }}" alt="Share QR code" />
+              </div>
+            </div>
+            <div data-theme="light" class="data-[theme=dark]:bg-stone-950 data-[theme=light]:bg-white px-6 py-8 xs:px-8 sm:px-8 lg:px-10 lg:py-12 border-none data-[theme=dark]:border-stone-700 data-[theme=light]:border-slate-200 lg:border-t-0 lg:border-l data-[theme=dark]:border-white/20 data-[theme=light]:border-slate-200 lg:rounded-r-[32px]">
+              <div class="border-slate-300 lg:mt-0 lg:pt-0 lg:border-0">
+                <div class="hidden lg:block w-full flex items-center justify-center flex-col">
+                  {{ if .page.Logo }}
+                  <img class="logo-img" src="{{ .page.Logo }}" alt="Logo" class="h-24 w-auto mx-auto logo-light" />
+                  {{ end }}
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="h-5 w-5 text-slate-400 mx-auto">
+                    <path fill-rule="evenodd" d="M6.75 3A2.25 2.25 0 0 0 4.5 5.25v13.5A2.25 2.25 0 0 0 6.75 21h10.5A2.25 2.25 0 0 0 19.5 18.75V5.25A2.25 2.25 0 0 0 17.25 3H6.75Zm.75 3a.75.75 0 0 0 0 1.5h9a.75.75 0 0 0 0-1.5h-9Zm-.75 4.5c0-.414.336-.75.75-.75h9a.75.75 0 0 1 0 1.5h-9a.75.75 0 0 1-.75-.75Zm.75 3.75a.75.75 0 0 0 0 1.5h5.25a.75.75 0 0 0 0-1.5H7.5Z" clip-rule="evenodd" />
+                  </svg>
+                  <p id="receipt-date-desktop" class="text-xs text-center text-slate-400 mt-1"></p>
+                </div>
+
+                <h3 class="text-sm font-semibold mb-4 mt-2">Payment method</h3>
+                <div class="grid grid-cols-1 gap-3">
+                  <!-- Credit Card Option -->
+                  <label
+                    data-theme="light"
+                    class="group relative flex items-center p-4 border-2 data-[theme=dark]:border-stone-700 data-[theme=light]:border-slate-200 data-[theme=dark]:bg-stone-900 data-[theme=light]:bg-white rounded-xl cursor-pointer hover:border-violet-300 hover:bg-violet-50 transition-all duration-200">
+                    <input type="radio" name="method" id="method-credit" value="credit" checked class="sr-only" />
+                    <div class="flex items-center justify-between w-full">
+                      <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 rounded-full border-2 border-slate-300 group-has-[input:checked]:border-violet-600 group-has-[input:checked]:bg-violet-600 flex items-center justify-center transition-all duration-200">
+                          <div class="w-2 h-2 rounded-full bg-white opacity-0 group-has-[input:checked]:opacity-100 transition-opacity duration-200"></div>
+                        </div>
+                        <div>
+                          <div data-theme="light" class="font-semibold data-[theme=dark]:text-white data-[theme=light]:text-stone-800">Credit Card</div>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-1">
+                        <img data-theme="light" src="/assets/visa.svg" alt="Visa" class="w-[35px] h-[25px] data-[theme=dark]:filter data-[theme=dark]:grayscale data-[theme=dark]:brightness-200 data-[theme=dark]:contrast-[0.5] data-[theme=dark]:invert-[1] data-[theme=dark]:invert-0" />
+                        <img src="/assets/mastercard.svg" alt="Mastercard" class="w-[35px] h-[25px]" />
+                        <img src="/assets/amex.svg" alt="American Express" class="w-[35px] h-[25px]" />
+                        <img src="/assets/discover.svg" alt="Discover" class="w-[35px] h-[25px]" />
+                      </div>
+                    </div>
+                  </label>
+
+                  <label
+                    id="method-apple-wrapper"
+                    data-theme="light"
+                    class="group relative flex items-center p-4 border-2 data-[theme=dark]:border-stone-700 data-[theme=light]:border-slate-200 data-[theme=dark]:bg-stone-900 data-[theme=light]:bg-white rounded-xl cursor-pointer hover:border-violet-300 hover:bg-violet-50 transition-all duration-200">
+                    <input type="radio" name="method" id="method-apple" value="apple" class="sr-only" />
+                    <div class="flex items-center justify-between w-full">
+                      <div class="flex items-center gap-3">
+                        <div class="w-6 h-6 rounded-full border-2 border-slate-300 group-has-[input:checked]:border-violet-600 group-has-[input:checked]:bg-violet-600 flex items-center justify-center transition-all duration-200">
+                          <div class="w-2 h-2 rounded-full bg-white opacity-0 group-has-[input:checked]:opacity-100 transition-opacity duration-200"></div>
+                        </div>
+                        <div>
+                          <div data-theme="light" class="font-semibold data-[theme=dark]:text-white data-[theme=light]:text-stone-800">Apple Pay</div>
+                          <div data-theme="light" class="text-xs data-[theme=dark]:text-stone-400 data-[theme=light]:text-stone-500">Pay with Touch ID or Face ID</div>
+                        </div>
+                      </div>
+                      <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-black text-white">
+                        <svg viewBox="0 0 24 24" class="w-5 h-5" fill="currentColor" aria-hidden="true">
+                          <path
+                            d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
+                        </svg>
+                      </div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div id="manual-section" class="mt-4 w-full">
+                <form id="payment_form" onsubmit="return false;" autocomplete="on" class="space-y-4 w-full ">
+                  <div class="w-full">
+                    <label for="cardNumber" class="block text-sm font-medium mb-1">Card number</label>
+                    <input
+                      type="tel"
+                      inputmode="numeric"
+                      pattern="[0-9]*"
+                      data-token="card_number"
+                      placeholder="**** **** **** ****"
+                      autocomplete="cc-number"
+                      required
+                      data-theme="light"
+                      class="h-12 w-full rounded-xl border data-[theme=dark]:border-stone-700 data-[theme=light]:border-slate-200 data-[theme=dark]:bg-stone-900 data-[theme=light]:bg-white px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
+                  </div>
+                  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <label for="expMonth" class="block text-sm font-medium mb-1">Expiry month</label>
+                      <input
+                        type="tel"
+                        inputmode="numeric"
+                        pattern="[0-9]*"
+                        data-token="exp_month"
+                        placeholder="MM"
+                        maxlength="2"
+                        autocomplete="cc-exp-month"
+                        required
+                        data-theme="light"
+                        class="h-12 w-full rounded-xl border data-[theme=dark]:border-stone-700 data-[theme=light]:border-slate-200 data-[theme=dark]:bg-stone-900 data-[theme=light]:bg-white px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
+                    </div>
+                    <div>
+                      <label for="expYear" class="block text-sm font-medium mb-1">Expiry year</label>
+                      <input
+                        type="tel"
+                        inputmode="numeric"
+                        pattern="[0-9]*"
+                        data-token="exp_year"
+                        placeholder="YYYY"
+                        maxlength="4"
+                        autocomplete="cc-exp-year"
+                        required
+                        data-theme="light"
+                        class="h-12 w-full rounded-xl border data-[theme=dark]:border-stone-700 data-[theme=light]:border-slate-200 data-[theme=dark]:bg-stone-900 data-[theme=light]:bg-white px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div>
+                      <label for="cvv" class="block text-sm font-medium mb-1">Security code</label>
+                      <input
+                        type="tel"
+                        inputmode="numeric"
+                        pattern="[0-9]*"
+                        data-token="cvv"
+                        placeholder="CVC"
+                        maxlength="4"
+                        autocomplete="cc-csc"
+                        required
+                        data-theme="light"
+                        class="h-12 w-full rounded-xl border data-[theme=dark]:border-stone-700 data-[theme=light]:border-slate-200 data-[theme=dark]:bg-stone-900 data-[theme=light]:bg-white px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
+                    </div>
+                    <div>
+                      <label for="postal" class="block text-sm font-medium mb-1">Postal code</label>
+                      <input
+                        type="text"
+                        data-token="postal_code"
+                        placeholder="12345"
+                        autocomplete="postal-code"
+                        data-theme="light"
+                        class="h-12 w-full rounded-xl border data-[theme=dark]:border-stone-700 data-[theme=light]:border-slate-200 data-[theme=dark]:bg-stone-900 data-[theme=light]:bg-white px-3 text-base focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600" />
+                    </div>
+                  </div>
+                  <div class="pt-1 space-y-2">
+                    <button
+                      id="pay_button"
+                      type="button"
+                      class="w-full h-12 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-semibold inline-flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                      aria-busy="false"
+                      aria-live="polite">
+                      <svg id="pay_btn_spinner" class="hidden h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                      </svg>
+                      <span id="pay_btn_text">Pay</span>
+                    </button>
+                    <button
+                      id="split_pay_button"
+                      type="button"
+                      data-theme="light"
+                      class="w-full h-10 rounded-xl font-medium inline-flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed data-[theme=dark]:bg-stone-800 data-[theme=dark]:hover:bg-stone-600 data-[theme=light]:bg-slate-200 data-[theme=light]:hover:bg-slate-300 data-[theme=dark]:text-stone-200 data-[theme=light]:text-slate-700">
+                      <svg data-theme="light" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 data-[theme=dark]:text-stone-200 data-[theme=light]:text-slate-700">
+                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                      </svg>
+                      <span data-theme="light" class="data-[theme=dark]:text-stone-200 data-[theme=light]:text-slate-700">Split Payment</span>
+                    </button>
+                  </div>
+                  <p id="payment_errors" class="text-sm font-semibold text-red-700" role="alert" aria-live="polite"></p>
+                </form>
+                <p id="msg" class="text-sm text-slate-500 mt-1"></p>
+              </div>
+
+              <div id="apple-pay-section" class="mt-3">
+                <div id="apple-pay-button" class="mt-2"></div>
+                <p class="text-sm text-slate-500 mt-2">Not seeing Apple Pay? Use Safari on iOS 10+ or macOS 10.12+ with an active wallet.</p>
+              </div>
+              <!-- <div id="google-pay-section" class="mt-3">
+                <div id="google-pay-button" class="mb-2"></div>
+            </div> -->
+
+            <div class="lg:hidden relative z-10 mt-6 pt-6 text-center border-t border-dashed border-slate-200 lg:text-left lg:mt-auto lg:pt-0 lg:border-0">
+              <p class="text-xs text-slate-600 lg:text-slate-200">Share this page</p>
+              <img class="mx-auto mt-3 rounded-lg border border-slate-200 shadow-sm lg:mx-0 lg:border-white/20 lg:shadow-xl" src="/qr/{{ .page.MerchantID }}/{{ .page.PageUID }}" alt="Share QR code" />
+            </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div
+      id="page-data"
+      data-merchant-id="{{ .page.MerchantID }}"
+      data-page-uid="{{ .page.PageUID }}"
+      data-store-name="{{ .page.StoreName }}"
+      data-amount-cents="{{ .page.AmountCents }}"
+      data-currency="{{ .page.Currency }}"
+      data-webtoken-mid="{{ .page.PublicToken }}"
+      data-apple-pay-mid="{{ .page.ApplePayMid }}"
+      data-google-pay-mid="{{ .page.GooglePayMid }}"
+      data-created-at-utc="{{ .page.CreatedAt.Format "2006-01-02T15:04:05Z07:00" }}"
+      data-items-json='{{ .page.Items }}'
+      data-include-tip="{{ .page.IncludeTip }}"
+      data-allowed-tip-percentages='{{ .page.AllowedTipPercentages }}'
+      data-payments='{{ .paymentsJSON }}'
+      data-logo="{{ .page.Logo }}"
+      data-logo2="{{ .page.Logo2 }}"
+      ></div>
+
+    <!-- Split Payment Dialog -->
+    <div id="split-payment-modal" data-theme="light" class="fixed inset-0 data-[theme=dark]:bg-stone-950/50 data-[theme=light]:bg-white/30  hidden z-50 flex items-center justify-center p-4">
+      <div data-theme="light" class="data-[theme=dark]:bg-stone-900 data-[theme=light]:bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div class="p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 data-theme="light" class="text-lg font-semibold data-[theme=dark]:text-white data-[theme=light]:text-stone-800">Split Payment</h3>
+            <button data-theme="light" id="close-split-modal" class="data-[theme=dark]:text-stone-400 data-[theme=light]:text-stone-600 hover:text-slate-600">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-6 h-6">
+                <path d="M18 6L6 18M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="mb-4">
+            <p data-theme="light" class="text-sm data-[theme=dark]:text-stone-400 data-[theme=light]:text-stone-600 mb-2">Amount due now: <span id="split-total-amount" class="font-semibold"></span></p>
+            <p data-theme="light" class="text-xs data-[theme=dark]:text-stone-400 data-[theme=light]:text-stone-500">Choose how you'd like to split this payment</p>
+          </div>
+
+          <div class="space-y-4">
+            <!-- Regular Intervals -->
+            <div>
+              <h4 data-theme="light" class="text-sm font-medium data-[theme=dark]:text-white data-[theme=light]:text-stone-800 mb-3">Percentages</h4>
+              <div class="grid grid-cols-2 gap-2">
+                <button data-selected="false" class="split-option-btn p-3 border border-slate-200 rounded-lg hover:border-violet-300 hover:bg-violet-400/20 data-[selected=true]:border-violet-600 data-[selected=true]:bg-violet-400/20 transition-colors" data-type="interval" data-value="2">
+                  <div data-theme="light" class="text-sm font-medium data-[theme=dark]:text-white data-[theme=light]:text-stone-800">Split by 2</div>
+                  <div data-theme="light" class="text-xs data-[theme=dark]:text-stone-400 data-[theme=light]:text-stone-500" id="split-2-amount"></div>
+                </button>
+                <button data-selected="false" class="split-option-btn p-3 border border-slate-200 rounded-lg hover:border-violet-300 hover:bg-violet-400/20 data-[selected=true]:border-violet-600 data-[selected=true]:bg-violet-400/20 transition-colors" data-type="interval" data-value="3">
+                  <div data-theme="light" class="text-sm font-medium data-[theme=dark]:text-white data-[theme=light]:text-stone-800">Split by 3</div>
+                  <div data-theme="light" class="text-xs data-[theme=dark]:text-stone-400 data-[theme=light]:text-stone-500" id="split-3-amount"></div>
+                </button>
+                <button data-selected="false" class="split-option-btn p-3 border border-slate-200 rounded-lg hover:border-violet-300 hover:bg-violet-400/20 data-[selected=true]:border-violet-600 data-[selected=true]:bg-violet-400/20 transition-colors" data-type="interval" data-value="4">
+                  <div data-theme="light" class="text-sm font-medium data-[theme=dark]:text-white data-[theme=light]:text-stone-800">Split by 4</div>
+                  <div data-theme="light" class="text-xs data-[theme=dark]:text-stone-400 data-[theme=light]:text-stone-500" id="split-4-amount"></div>
+                </button>
+                <button data-selected="false" class="split-option-btn p-3 border border-slate-200 rounded-lg hover:border-violet-300 hover:bg-violet-400/20 data-[selected=true]:border-violet-600 data-[selected=true]:bg-violet-400/20 transition-colors" data-type="interval" data-value="5">
+                  <div data-theme="light" class="text-sm font-medium data-[theme=dark]:text-white data-[theme=light]:text-stone-800">Split by 5</div>
+                  <div data-theme="light" class="text-xs data-[theme=dark]:text-stone-400 data-[theme=light]:text-stone-500" id="split-5-amount"></div>
+                </button>
+              </div>
+            </div>
+
+            <!-- Custom Amount -->
+            <div>
+              <h4 data-theme="light" class="text-sm font-medium data-[theme=dark]:text-white data-[theme=light]:text-stone-800 mb-3">Custom Amount</h4>
+              <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span data-theme="light" class="text-sm font-medium data-[theme=dark]:text-stone-400 data-[theme=light]:text-stone-500" id="split-currency-symbol"></span>
+                </div>
+                <input
+                  type="number"
+                  id="custom-split-amount"
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0.01"
+                  data-theme="light"
+                  class="block w-full pl-10 pr-3 py-3 border data-[theme=dark]:border-stone-700 data-[theme=light]:border-slate-200 data-[theme=dark]:bg-stone-900 data-[theme=light]:bg-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-300 focus:border-violet-600"
+                />
+              </div>
+              <p data-theme="light" class="text-xs data-[theme=dark]:text-stone-400 data-[theme=light]:text-stone-500 mt-1">Enter the amount you want to pay now</p>
+            </div>
+          </div>
+
+          <div class="flex gap-3 mt-6">
+            <button data-theme="light" id="cancel-split" class="flex-1 px-4 py-2 border data-[theme=dark]:border-stone-700 data-[theme=light]:border-slate-200 data-[theme=dark]:bg-stone-900 data-[theme=light]:bg-white rounded-lg data-[theme=dark]:text-stone-400 data-[theme=light]:text-stone-700 hover:bg-slate-50 transition-colors">
+              Cancel
+            </button>
+            <button data-theme="light" id="confirm-split" class="flex-1 px-4 font-semibold py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+              Pay Now
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    </body>
+    <script async defer>
+      // document.addEventListener("DOMContentLoaded", function() {
+        // })
+      let el = document.getElementById("page-data")
+      console.log("payments: ", el.dataset.payments)
+      let merchantId = el.dataset.merchantId
+      let pageUid = el.dataset.pageUid
+      let storeName = el.dataset.storeName || "Store"
+      let amountCents = parseInt(el.dataset.amountCents || "0", 10) // todo have this be the balance instead
+      let currency = el.dataset.currency || "USD"
+      let applePayMid = el.dataset.applePayMid || ""
+      let googlePayMid = el.dataset.googlePayMid || ""
+      let webTokenMid = el.dataset.webtokenMid || ""
+
+      let methodCredit = document.getElementById("method-credit")
+      let methodApple = document.getElementById("method-apple")
+      let methodAppleWrapper = document.getElementById("method-apple-wrapper")
+      let manualSection = document.getElementById("manual-section")
+      let applePaySection = document.getElementById("apple-pay-section")
+
+      // manual card
+      let payBtn = document.getElementById("pay_button")
+      let payBtnSpinner = document.getElementById("pay_btn_spinner")
+      let payBtnText = document.getElementById("pay_btn_text")
+      let paymentErrors = document.getElementById("payment_errors")
+
+      let splitPayBtn = document.getElementById("split_pay_button")
+      let splitModal = document.getElementById("split-payment-modal")
+      let closeSplitModal = document.getElementById("close-split-modal")
+      let cancelSplit = document.getElementById("cancel-split")
+      let confirmSplit = document.getElementById("confirm-split")
+      let customSplitAmount = document.getElementById("custom-split-amount")
+      let splitOptionBtns = document.querySelectorAll(".split-option-btn")
+      let selectedSplitAmount = 0
+      let splitTotalValue = 0 // This will hold the current split amount (initially balance, then user's choice)
+
+      let msg = document.getElementById("msg")
+
+      let chargeUrl = "/api/payments/" + merchantId + "/" + pageUid + "/charge"
+      //! this gets called when datacap returns a token
+      const tokenCallback = function (response, amountToCharge) {
+        setPayLoading(false)
+        setMsg("")
+
+        if (!response) {
+          if (paymentErrors) paymentErrors.textContent = "No response from tokenization"
+          return
+        }
+        if (response.Error) {
+          if (paymentErrors) paymentErrors.textContent = response.Error
+          return
+        }
+
+        const token = response.Token || response.token || response.id
+        if (!token) {
+          if (paymentErrors) paymentErrors.textContent = "No token returned"
+          return
+        }
+
+        let last4
+        let brand
+        try {
+          last4 = response.Last4 || response.last4 || response.cardLast4 || undefined
+          brand = response.Brand || response.brand || response.CardBrand || undefined
+          console.log("[Datacap] Tokenization response:", response)
+        } catch (_) {}
+        handleChargeWithToken(token, last4, brand, amountToCharge)
+          .then(function (ok) {
+            setMsg(ok)
+          })
+          .catch(function (err) {
+            setMsg("Error: " + (err && err.message ? err.message : String(err)))
+          })
+          .finally(function () {
+            setPayLoading(false)
+          })
+      }
+      try {
+        const rawPercentages = JSON.parse(el.dataset.allowedTipPercentages || "[]")
+        // Convert from whole numbers (15, 18, 20) to decimals (0.15, 0.18, 0.20)
+        allowedTipPercentages = rawPercentages.map((p) => p / 100)
+      } catch (e) {
+        console.error("Error parsing tip percentages:", e)
+        allowedTipPercentages = [0.15, 0.18, 0.2] // Default fallback
+      }
+
+      try {
+        let dateEl = document.getElementById("receipt-date")
+        let dateElDesktop = document.getElementById("receipt-date-desktop")
+        let createdAtUtc = el.dataset.createdAtUtc
+        if (createdAtUtc) {
+          let d = new Date(createdAtUtc)
+          if (!isNaN(d.getTime())) {
+            const dateString = d.toLocaleString()
+            if (dateEl) dateEl.textContent = dateString
+            if (dateElDesktop) dateElDesktop.textContent = dateString
+          }
+        }
+      } catch (_) {}
+
+      try {
+        let itemsRoot = document.getElementById("items_list")
+        let itemsJSON = el.dataset.itemsJson
+        if (itemsJSON) {
+          let arr = JSON.parse(itemsJSON)
+          if (Array.isArray(arr)) {
+            const itemsHTML = arr
+              .map(function (it) {
+                let title = (it && it.title) || ""
+                let desc = (it && it.description) || ""
+                let price = (it && it.price) || 0
+                let quantity = (it && it.quantity) || 0
+                let total = (it && it.total) || 0
+
+                return `<div data-theme="light" class="flex items-center justify-between data-[theme=dark]:text-stone-100 data-[theme=light]:text-slate-900 lg:!text-slate-100 lg:font-semibold">
+                                <div>
+                                  <div class="font-medium lg:font-semibold">${title}</div>
+                                  <div class="text-[12px]">${desc}</div>
+                                </div>
+                                <div class="font-mono text-sm lg:font-bold">${(Number(price) / 100).toFixed(2)}</div>
+                              </div>`
+              })
+              .join("")
+
+            if (itemsRoot) itemsRoot.innerHTML = itemsHTML
+          }
+        }
+      } catch (_) {}
+
+      // Parse and display payments
+      try {
+        let paymentsRoot = document.getElementById("payments_list")
+        let paymentsJSON = el.dataset.payments
+        if (paymentsJSON && paymentsRoot) {
+          let payments = JSON.parse(paymentsJSON)
+          if (Array.isArray(payments) && payments.length > 0) {
+            const paymentsHTML = payments
+              .map(function (payment) {
+                let id = (payment && payment.id) || ""
+                let last4 = (payment && payment.last4) || "****"
+                let brand = (payment && payment.brand) || "Card"
+                let amountCents = (payment && payment.amount_cents) || 0
+                let currency = (payment && payment.currency) || "USD"
+                let invoiceNo = (payment && payment.invoice_no) || ""
+                let createdAt = (payment && payment.created_at) || ""
+
+                // Format date
+                let formattedDate = ""
+                if (createdAt) {
+                  try {
+                    let date = new Date(createdAt)
+                    if (!isNaN(date.getTime())) {
+                      formattedDate = date.toLocaleString()
+                    }
+                  } catch (e) {
+                    formattedDate = createdAt
+                  }
+                }
+
+                // Format amount
+                let formattedAmount = formatAmount(amountCents, currency)
+
+                return `<div data-theme="light" class="flex items-center justify-between p-3 rounded-lg border data-[theme=dark]:border-stone-800 data-[theme=light]:border-slate-200 data-[theme=dark]:text-stone-100 data-[theme=light]:text-slate-900 lg:!text-slate-100 lg:font-semibold lg:bg-white/10 lg:border-white/20 lg:backdrop-blur-sm">
+                          <div class="flex items-center gap-3">
+                            <div>
+                              <div class="text-sm font-semibold">${brand} •••• ${last4}</div>
+                              <div class="text-xs">${formattedDate}</div>
+                            </div>
+                          </div>
+                          <div class="text-right">
+                            <div class="text-base font-bold text-green-600 lg:text-green-400">${formattedAmount}</div>
+                            <div class="text-xs font-medium">Paid</div>
+                          </div>
+                        </div>`
+              })
+              .join("")
+
+            paymentsRoot.innerHTML = paymentsHTML
+          } else {
+            document.getElementById("payments_list_wrapper").remove()
+          }
+        }
+        // Update amount display after payments are processed
+        updateAmountDisplay()
+      } catch (e) {
+        console.error("Error parsing payments:", e)
+        // Still update amount display even if payments parsing fails
+        updateAmountDisplay()
+      }
+
+      if (payBtn) {
+        payBtn.addEventListener("click", function () {
+          if (payBtn.disabled || payBtn.getAttribute("aria-busy") === "true") return
+          clearErrors()
+          setMsg("")
+          setPayLoading(true)
+          if (!window.DatacapWebToken) {
+            if (paymentErrors) paymentErrors.textContent = "Token library unavailable"
+            setPayLoading(false)
+            return
+          }
+          console.log("requesting token")
+          DatacapWebToken.requestToken(webTokenMid, "payment_form", tokenCallback)
+        })
+      }
+
+      // Add event listeners to radio buttons
+      if (methodCredit) methodCredit.addEventListener("change", togglePaymentMethod)
+      if (methodApple) methodApple.addEventListener("change", togglePaymentMethod)
+
+      const totalAmount = amountCents
+      if (window.DatacapApplePay && DatacapApplePay.init) {
+        console.log("Initializing Apple Pay ... ", webTokenMid, storeName, applePayMid, (totalAmount / 100).toFixed(2))
+        try {
+          DatacapApplePay.init(tokenCallback, webTokenMid, storeName, applePayMid, (totalAmount / 100).toFixed(2))
+        } catch (e) {
+          console.log("Error initializing Apple Pay:", e)
+        }
+      }
+
+      // Function to format amount (helper function)
+      function formatAmount(cents, currency) {
+        const amount = (cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+        return currency === "USD" ? `$${amount}` : `${amount} ${currency}`
+      }
+
+      function updateAmountDisplay() {
+        const subtotalElement = document.getElementById("subtotal-display")
+        const subtotalElementDesktop = document.getElementById("subtotal-display-desktop")
+        const amountDisplayElement = document.getElementById("amount-display")
+        const amountDisplayElementDesktop = document.getElementById("amount-display-desktop")
+
+        let totalFeesCents = 0
+
+        const taxElement = document.getElementById("tax-display")
+        if (taxElement && taxElement.textContent) {
+          const taxText = taxElement.textContent.replace(currency, "").replace("$", "").replace(/,/g, "").trim()
+          const taxNumber = parseFloat(taxText)
+          const taxCents = Math.round((isNaN(taxNumber) ? 0 : taxNumber) * 100)
+          if (!isNaN(taxCents)) {
+            totalFeesCents += taxCents
+          }
+        }
+
+        // Add surcharge if present
+        const surchargeElement = document.getElementById("surcharge-display")
+        if (surchargeElement && surchargeElement.textContent) {
+          const surchargeText = surchargeElement.textContent.replace(currency, "").replace("$", "").replace(/,/g, "").trim()
+          const surchargeNumber = parseFloat(surchargeText)
+          const surchargeCents = Math.round((isNaN(surchargeNumber) ? 0 : surchargeNumber) * 100)
+          if (!isNaN(surchargeCents)) {
+            totalFeesCents += surchargeCents
+          }
+        }
+
+        // Calculate subtotal: AmountCents - tax - surcharge
+        const subtotalCents = Math.max(0, amountCents - totalFeesCents)
+
+        // Calculate total payments made
+        let totalPaymentsCents = 0
+        try {
+          let paymentsJSON = el.dataset.payments
+          if (paymentsJSON) {
+            let payments = JSON.parse(paymentsJSON)
+            if (Array.isArray(payments)) {
+              totalPaymentsCents = payments.reduce((total, payment) => {
+                return total + ((payment && payment.amount_cents) || 0)
+              }, 0)
+            }
+          }
+        } catch (e) {
+          console.error("Error calculating total payments:", e)
+        }
+
+        const paidElement = document.getElementById("paid-display")
+        if (paidElement && totalPaymentsCents > 0) {
+          paidElement.parentElement.classList.remove("hidden")
+          paidElement.textContent = formatAmount(totalPaymentsCents, currency)
+        }
+
+        // Calculate amount due: Original amount - payments made
+        const amountDueCents = Math.max(0, amountCents - totalPaymentsCents)
+
+        // Update subtotal display
+        if (subtotalElement) {
+          subtotalElement.textContent = formatAmount(subtotalCents, currency)
+        }
+        if (subtotalElementDesktop) {
+          subtotalElementDesktop.textContent = formatAmount(subtotalCents, currency)
+        }
+
+        // Update amount due display
+        if (amountDisplayElement) {
+          amountDisplayElement.textContent = formatAmount(amountDueCents, currency)
+        }
+        if (amountDisplayElementDesktop) {
+          amountDisplayElementDesktop.textContent = formatAmount(amountDueCents, currency)
+        }
+
+        // Update global total for Apple Pay
+        totalAmountCents = amountDueCents
+      }
+
+      function setMsg(text) {
+        msg.textContent = text || ""
+        if (text && /^Error:/i.test(text)) {
+          msg.classList.remove("text-slate-500")
+          msg.classList.add("font-semibold", "text-red-700")
+        } else {
+          msg.classList.remove("font-semibold", "text-red-700")
+          msg.classList.add("text-slate-500")
+        }
+        if (text && typeof text === "string" && /^Approved:/i.test(text)) {
+          try {
+            window.location.reload()
+          } catch (_) {}
+        }
+      }
+
+      function handleChargeWithToken(datacapToken, last4, brand, amountToCharge) {
+        return fetch(chargeUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            datacap_token: datacapToken,
+            last4: last4,
+            brand: brand,
+            tip_amount_cents: 0, // todo tips later
+            amount_cents: amountToCharge,
+          }),
+        }).then(async function (res) {
+          let body = {}
+          try {
+            body = await res.json()
+          } catch (e) {}
+          if (!res.ok) throw new Error((body && body.message) || "Charge failed")
+          if (body && body.approved) {
+            return "Approved: " + (body.message || "")
+          }
+          throw new Error("Declined: " + ((body && body.message) || ""))
+        })
+      }
+
+      function clearErrors() {
+        if (paymentErrors) paymentErrors.textContent = ""
+      }
+      function setPayLoading(isLoading) {
+        try {
+          // Mobile elements
+          if (payBtn) {
+            payBtn.disabled = !!isLoading
+            payBtn.setAttribute("aria-busy", isLoading ? "true" : "false")
+          }
+          if (payBtnSpinner) payBtnSpinner.classList.toggle("hidden", !isLoading)
+          if (payBtnText) payBtnText.textContent = isLoading ? "Processing..." : "Pay"
+        } catch (_) {}
+      }
+
+      function togglePaymentMethod() {
+        if (methodCredit && methodCredit.checked) {
+          if (manualSection) manualSection.style.display = "block"
+          if (applePaySection) applePaySection.style.display = "none"
+        } else if (methodApple && methodApple.checked) {
+          if (manualSection) manualSection.style.display = "none"
+          if (applePaySection) applePaySection.style.display = "block"
+        }
+      }
+      function initializeTheme() {
+        const themeToggle = document.getElementById("theme-toggle")
+        const themeIcon = document.getElementById("theme-icon")
+        const html = document.documentElement
+
+        // Check for saved theme preference or default to system preference
+        const savedTheme = localStorage.getItem("theme")
+        const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
+
+        let currentTheme = savedTheme || (systemPrefersDark ? "dark" : "light")
+
+        // Apply theme
+        function applyTheme(theme) {
+          // html.setAttribute("data-theme", theme)
+          // grab all elements that have a data-theme attribute
+          localStorage.setItem("theme", theme)
+          const elements = document.querySelectorAll("[data-theme]")
+          elements.forEach(element => {
+            element.setAttribute("data-theme", theme)
+          })
+
+          const logos = document.querySelectorAll(".logo-img")
+          logos.forEach(logo => {
+            if (theme === "dark") {
+              logo.src = el.dataset.logo2
+            } else {
+              logo.src = el.dataset.logo
+            }
+          })
+
+          // Update icon
+          if (theme === "dark") {
+            themeIcon.innerHTML =
+              '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />'
+          } else {
+            themeIcon.innerHTML =
+              '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />'
+          }
+        }
+
+        // Toggle theme
+        function toggleTheme() {
+          currentTheme = currentTheme === "light" ? "dark" : "light"
+          applyTheme(currentTheme)
+        }
+
+        // Listen for system theme changes
+        window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (e) => {
+          if (!localStorage.getItem("theme")) {
+            currentTheme = e.matches ? "dark" : "light"
+            applyTheme(currentTheme)
+          }
+        })
+
+        // Apply initial theme
+        applyTheme(currentTheme)
+
+        // Add click listener
+        themeToggle.addEventListener("click", toggleTheme)
+      }
+
+      initializeTheme()
+
+      updateAmountDisplay()
+
+      togglePaymentMethod()
+
+
+
+      // Open split payment modal
+      if (splitPayBtn) {
+        splitPayBtn.addEventListener("click", function() {
+          openSplitModal()
+        })
+      }
+
+      // Close modal handlers
+      if (closeSplitModal) {
+        closeSplitModal.addEventListener("click", closeSplitModalHandler)
+      }
+      if (cancelSplit) {
+        cancelSplit.addEventListener("click", closeSplitModalHandler)
+      }
+
+      // Close modal when clicking outside
+      if (splitModal) {
+        splitModal.addEventListener("click", function(e) {
+          if (e.target === splitModal) {
+            closeSplitModalHandler()
+          }
+        })
+      }
+
+      // Handle split option buttons
+      splitOptionBtns.forEach(btn => {
+        btn.addEventListener("click", function() {
+          splitOptionBtns.forEach(b => b.dataset.selected = "false")
+
+          btn.dataset.selected = "true"
+
+
+          // Calculate split amount
+          let totalDue = totalAmountCents
+          let numPayments = parseInt(this.dataset.value)
+          selectedSplitAmount = Math.ceil(totalDue / numPayments)
+
+          // Update splitTotalValue to the calculated split amount
+          splitTotalValue = selectedSplitAmount
+
+          // Update the amount display to show the split amount
+          updateAmountDisplayForSplit()
+
+          // Clear custom input
+          if (customSplitAmount) {
+            customSplitAmount.value = ""
+          }
+
+          // Enable confirm button
+          if (confirmSplit) {
+            confirmSplit.disabled = false
+          }
+        })
+      })
+
+      // Handle custom amount input
+      if (customSplitAmount) {
+        customSplitAmount.addEventListener("input", function() {
+          // Remove selected state from interval buttons
+          splitOptionBtns.forEach(b => b.classList.remove("border-violet-600", "bg-violet-50"))
+
+          let customAmount = parseFloat(this.value) || 0
+          selectedSplitAmount = Math.round(customAmount * 100) // Convert to cents
+
+          // Update splitTotalValue to the custom amount
+          splitTotalValue = selectedSplitAmount
+
+          // Update the amount display to show the custom split amount
+          updateAmountDisplayForSplit()
+
+          // Enable/disable confirm button
+          if (confirmSplit) {
+            confirmSplit.disabled = customAmount <= 0 || customAmount > (totalAmountCents / 100)
+          }
+        })
+      }
+
+      // Handle confirm split payment
+      if (confirmSplit) {
+        confirmSplit.addEventListener("click", function() {
+          if (selectedSplitAmount > 0) {
+            processSplitPayment(selectedSplitAmount)
+          }
+        })
+      }
+
+      function openSplitModal() {
+        if (splitModal) {
+          // Initialize splitTotalValue with current balance
+          splitTotalValue = totalAmountCents
+
+          // Update total amount display
+          let splitTotalAmount = document.getElementById("split-total-amount")
+          if (splitTotalAmount) {
+            splitTotalAmount.textContent = formatAmount(totalAmountCents, currency)
+          }
+
+          // Update currency symbol
+          let splitCurrencySymbol = document.getElementById("split-currency-symbol")
+          if (splitCurrencySymbol) {
+            splitCurrencySymbol.textContent = currency === "USD" ? "$" : currency + " "
+          }
+
+          let totalDue = totalAmountCents
+          for (let i = 2; i <= 5; i++) {
+            let splitAmount = Math.ceil(totalDue / i)
+            let splitAmountEl = document.getElementById(`split-${i}-amount`)
+            if (splitAmountEl) {
+              splitAmountEl.textContent = formatAmount(splitAmount, currency) + " each"
+            }
+          }
+
+          selectedSplitAmount = 0
+          splitOptionBtns.forEach(b => b.classList.remove("border-violet-600", "bg-violet-50"))
+          if (customSplitAmount) {
+            customSplitAmount.value = ""
+          }
+          if (confirmSplit) {
+            confirmSplit.disabled = true
+          }
+
+          splitModal.classList.remove("hidden")
+        }
+      }
+
+      function closeSplitModalHandler() {
+        if (splitModal) {
+          splitModal.classList.add("hidden")
+        }
+      }
+
+      function updateAmountDisplayForSplit() {
+        const amountDisplayElement = document.getElementById("split-total-amount")
+        if (amountDisplayElement) {
+          amountDisplayElement.textContent = formatAmount(splitTotalValue, currency)
+        }
+      }
+
+      function processSplitPayment(splitAmountCents) {
+        closeSplitModalHandler()
+        if (splitAmountCents <= 0) {
+          return
+        }
+        // Process payment with split amount
+        if (!window.DatacapWebToken) {
+          if (paymentErrors) paymentErrors.textContent = "Token library unavailable"
+          return
+        }
+
+        clearErrors()
+        setMsg("")
+        setPayLoading(true)
+
+        console.log("Processing split payment for amount:", formatAmount(splitAmountCents, currency))
+        DatacapWebToken.requestToken(webTokenMid, "payment_form", (response) => tokenCallback(response, splitAmountCents))
+      }
+
+      // dont have google pay mid yet
+      // DatacapGooglePay.init(tokenCallback, webTokenMid ,merchantId,googlePayMid,(amountCents / 100).toFixed(2))
+    </script>
+</html>

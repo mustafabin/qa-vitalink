@@ -2,7 +2,6 @@ package server
 
 import (
 	"bytes"
-	"context"
 	"crypto/rand"
 	"encoding/json"
 	"errors"
@@ -240,29 +239,34 @@ func handleCreatePaymentPage(c echo.Context, db *gorm.DB) error {
 	})
 }
 
-func handleViewPaymentPage(c echo.Context, db *gorm.DB) error {
+func handleViewPaymentPage(c echo.Context) error {
 	merchantID := c.Param("merchant_id")
 	pageUID := c.Param("page_uid")
 
-	var pp models.PaymentPage
-	err := db.First(&pp, "merchant_id = ? AND page_uid = ?", merchantID, pageUID).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return c.Render(http.StatusNotFound, "not_found.html", map[string]any{})
-	} else if err != nil {
-		return c.String(http.StatusInternalServerError, "error")
+	pp, err := grabCheckValues(merchantID, pageUID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]any{"error": "error grabbing check values"})
 	}
 
 	if pp.Status == "paid" {
 		return c.Render(http.StatusOK, "paid.html", map[string]any{"page": pp})
 	}
 
-	if pp.Status != "open" || pp.IsExpired(time.Now()) {
+	if pp.ExpireAt != nil && pp.ExpireAt.Before(time.Now()) {
 		return c.Render(http.StatusOK, "expired.html", map[string]any{"page": pp})
 	}
 	log.Println("Rendering payment page for:", pp.MerchantID, pp.PageUID)
 	log.Println("Apple Pay MID:", pp.ApplePayMid)
 	log.Println("Google Pay MID:", pp.GooglePayMid)
-	return c.Render(http.StatusOK, "payment.html", map[string]any{"page": pp})
+	if len(pp.Payments) > 0 {
+		paymentJSON, _ := json.Marshal(pp.Payments[0])
+		log.Println("Payments:", string(paymentJSON))
+	}
+	paymentsJSON, _ := json.Marshal(pp.Payments)
+	return c.Render(http.StatusOK, "payment_revised.html", map[string]any{
+		"page": pp,
+		"paymentsJSON": string(paymentsJSON),
+	})
 }
 
 func handleQRPaymentPage(c echo.Context) error {
@@ -298,58 +302,6 @@ func isUnique(err error) bool {
 	return strings.Contains(s, "duplicate key value") || strings.Contains(strings.ToLower(s), "unique")
 }
 
-func markPaymentFulfilled(ctx context.Context, db *gorm.DB, page *models.PaymentPage, dcResp map[string]any) error {
-	if page == nil {
-		return errors.New("nil payment page")
-	}
-
-	approved := false
-	if v, ok := dcResp["Status"].(string); ok && strings.EqualFold(v, "Approved") {
-		approved = true
-	}
-	if v, ok := dcResp["CmdStatus"].(string); ok && strings.EqualFold(v, "Approved") {
-		approved = true
-	}
-	if !approved {
-		return errors.New("transaction not approved")
-	}
-
-	// In case of dupes
-	if page.Status == "paid" {
-		return nil
-	}
-
-	tx := db.WithContext(ctx).Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-
-	if err := tx.Model(page).Updates(map[string]any{
-		"status": "paid",
-		"last4":  dcResp["Last4"],
-		"brand":  dcResp["Brand"],
-	}).Error; err != nil {
-		tx.Rollback()
-		return fmt.Errorf("database update failed: %w", err)
-	}
-
-	if err := tx.Commit().Error; err != nil {
-		return fmt.Errorf("transaction commit failed: %w", err)
-	}
-
-	page.Status = "paid"
-	return nil
-}
-func getString(m map[string]any, key string) string {
-	if v, ok := m[key]; ok {
-		if s, ok := v.(string); ok {
-			return s
-		}
-	}
-	return ""
-}
 func handleFetchPaymentPageData(c echo.Context, db *gorm.DB) error {
 	merchantID := c.Param("merchant_id")
 	pageUID := c.Param("page_uid")
@@ -431,18 +383,15 @@ func handleFetchPaymentPageData(c echo.Context, db *gorm.DB) error {
 	})
 }
 
-func handleChargePayment(c echo.Context, db *gorm.DB) error {
+func handleChargePayment(c echo.Context) error {
 	merchantID := c.Param("merchant_id")
 	pageUID := c.Param("page_uid")
 
-	var page models.PaymentPage
-	if err := db.First(&page, "merchant_id = ? AND page_uid = ?", merchantID, pageUID).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return c.JSON(http.StatusNotFound, map[string]any{"error": "payment page not found"})
-		}
-		return c.JSON(http.StatusInternalServerError, map[string]any{"error": "db error"})
+	page, err := grabCheckValues(merchantID, pageUID)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]any{"error": "error grabbing check values"})
 	}
-	if page.Status != "open" || page.IsExpired(time.Now()) {
+	if page.ExpireAt != nil && page.ExpireAt.Before(time.Now()) {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "payment page closed or expired"})
 	}
 
@@ -451,6 +400,8 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 		Last4          string `json:"last4"`
 		Brand          string `json:"brand"`
 		TipAmountCents int64  `json:"tip_amount_cents"`
+		TaxAmountCents int64  `json:"tax_amount_cents"`
+		AmountCents    int64  `json:"amount_cents"`
 	}
 
 	if err := c.Bind(&req); err != nil {
@@ -462,52 +413,39 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	}
 	log.Println("Charging payment for page:", page.MerchantID, page.PageUID)
 
-	endpoint := "https://api.vitapay.com/v1/credit/sale"
+	baseURL := "https://vitasend-afe713904efe.herokuapp.com"
+	endpoint := baseURL + "/v1/credit/sale"
 
 	if page.AmountCents < 1 {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "amount must be at least 0.01"})
 	}
 
+	if req.AmountCents < 1 { // defaults to page amount if not provided
+		req.AmountCents = page.AmountCents
+	}
+
 	log.Println("Calculating total amount including tip ...")
-	// Calculate total amount including tip
-	log.Println("Tip amount:", req.TipAmountCents)
-	log.Println("Page amount:", page.AmountCents)
-	totalAmountCents := page.AmountCents + req.TipAmountCents
-	amount := fmt.Sprintf("%.2f", float64(totalAmountCents)/100)
+
+	amount := fmt.Sprintf("%.2f", float64(req.AmountCents)/100)
+	tipAmount := fmt.Sprintf("%.2f", float64(req.TipAmountCents)/100)
+	taxAmount := fmt.Sprintf("%.2f", float64(req.TaxAmountCents)/100)
 
 	log.Println("Total amount:", amount)
+	log.Println("Tip amount:", tipAmount)
+	log.Println("Tax amount:", taxAmount)
 
 	payload := map[string]string{
 		"Token":        req.DatacapToken,
 		"Amount":       amount,
-		"CustomerCode": page.InvoiceNo, // InvoiceNo
+		"Tip":    tipAmount,
+		"Tax":    taxAmount,
+		"CustomerCode": page.InvoiceNo,
 		"PartialAuth":  "Disallow",
 		"CardHolderID": "Allow_V2",
 		"InvoiceNo":    page.InvoiceNo,
 		"MerchantID":   page.MerchantID,
 		"PageUID":      page.PageUID,
 		"WebhookURL":   page.WebhookURL,
-	}
-
-	log.Println("Setting payload ...")
-	if page.InvoiceNo != "" {
-		payload["InvoiceNo"] = page.InvoiceNo
-	}
-	if page.PaymentFeeAmount != "" {
-		payload["PaymentFee"] = page.PaymentFeeAmount
-	}
-	if page.PaymentFeeDescription != "" {
-		payload["PaymentFeeDescription"] = page.PaymentFeeDescription
-	}
-	if page.SurchargeAmount != "" {
-		payload["SurchargeWithLookup"] = page.SurchargeAmount
-	}
-	if page.TaxAmount != "" {
-		payload["Tax"] = page.TaxAmount
-	}
-
-	if page.WebhookURL == "" {
-		page.WebhookURL = "https://61dd73d7a2cceb93bc904c56be0e18.08.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/27d65344f459485ca1e22f973d73ebc4/triggers/manual/paths/invoke?api-version=1"
 	}
 
 	bodyBytes, err := json.Marshal(payload)
@@ -539,24 +477,21 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	var dcResp map[string]any
 	_ = json.Unmarshal(respBytes, &dcResp)
 
-	// Fallback to client-provided metadata if gateway response omits these
 	if dcResp == nil {
 		dcResp = map[string]any{}
 	}
-	if _, ok := dcResp["Last4"]; !ok && strings.TrimSpace(req.Last4) != "" {
-		dcResp["Last4"] = req.Last4
-	}
-	if _, ok := dcResp["Brand"]; !ok && strings.TrimSpace(req.Brand) != "" {
-		dcResp["Brand"] = req.Brand
-	}
 
 	approved := false
+	approvedAmount := 0.0
 	message := ""
 	if v, ok := dcResp["Status"].(string); ok && strings.EqualFold(v, "Approved") {
 		approved = true
 	}
 	if v, ok := dcResp["Message"].(string); ok && message == "" {
 		message = v
+	}
+	if v, ok := dcResp["ApprovedAmount"].(float64); ok {
+		approvedAmount = v
 	}
 	if message == "" {
 		message = strings.TrimSpace(string(respBytes))
@@ -567,12 +502,12 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 	}
 
 	if approved {
-		log.Println("Payment approved sending to webhook ... ", page.WebhookURL , "dcResp: ", dcResp, "resp: ", resp, "invoice no: ", page.InvoiceNo)
+		log.Println("Payment approved sending to webhook ... ", page.WebhookURL , "amount: ", approvedAmount, "resp: ", resp, "invoice no: ", page.InvoiceNo)
 		webhookData := map[string]interface{}{
 			"type":"object",
 			"properties": map[string]interface{}{
 				"invoiceId": page.InvoiceNo,
-				"paymentAmount": float64(page.AmountCents)/100,
+				"paymentAmount": approvedAmount,
 				"paymentMethod": "Credit Card",
 				"transactionId": page.PageUID,
 			},
@@ -582,7 +517,6 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 			webhookData["properties"].(map[string]interface{})["invoiceId"] = page.PageUID
 		}
 		SendToWebhook(page.WebhookURL, webhookData)
-		_ = markPaymentFulfilled(c.Request().Context(), db, &page, dcResp)
 		return c.JSON(http.StatusOK, map[string]any{
 			"approved": true,
 			"message":  message,
@@ -600,9 +534,11 @@ func handleChargePayment(c echo.Context, db *gorm.DB) error {
 }
 
 func SendToWebhook(webhookURL string, data map[string]interface{}) error {
-	if webhookURL == ""  || !strings.HasPrefix(webhookURL, "http") {
-		webhookURL = "https://61dd73d7a2cceb93bc904c56be0e18.08.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/74363f9423c74bc7819b633a39f8609c/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=CZ-zRD_5XBW4L86VS0TluoQ_Zue25n_XWb3CJOhZyuc"
+	if webhookURL == "" {
+		log.Println("No webhook URL provided skipping webhook logic")
+		return nil
 	}
+
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return err
