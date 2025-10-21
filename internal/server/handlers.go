@@ -486,6 +486,9 @@ func handleChargePayment(c echo.Context) error {
 
 	approved := false
 	approvedAmount := 0.0
+	dcRespJSON, _ := json.Marshal(dcResp)
+	log.Println("Datacap response:", string(dcRespJSON))
+	log.Println("Approved amount:", dcResp["ApprovedAmount"])
 	message := ""
 	if v, ok := dcResp["Status"].(string); ok && strings.EqualFold(v, "Approved") {
 		approved = true
