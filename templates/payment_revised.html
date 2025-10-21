@@ -975,6 +975,8 @@
       function closeSplitModalHandler() {
         if (splitModal) {
           splitModal.classList.add("hidden")
+          // remove all the data-selected attributes from the split option buttons
+          splitOptionBtns.forEach(b => b.dataset.selected = "false")
         }
       }
 
