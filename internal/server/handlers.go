@@ -496,9 +496,12 @@ func handleChargePayment(c echo.Context) error {
 	if v, ok := dcResp["Message"].(string); ok && message == "" {
 		message = v
 	}
-	if v, ok := dcResp["ApprovedAmount"].(float64); ok {
-		approvedAmount = v
+	approvedAmount, err = strconv.ParseFloat(dcResp["ApprovedAmount"].(string), 64)
+	if err != nil {
+		log.Println("Error parsing approved amount:", err)
+		approvedAmount = 0.0
 	}
+
 	if message == "" {
 		message = strings.TrimSpace(string(respBytes))
 	}
