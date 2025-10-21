@@ -111,7 +111,7 @@
                     </div>
                   </div>
                   <div class="mt-2 text-[11px]">
-                    Page ID: {{ .page.PageUID }}
+                    Invoice No: {{ .page.InvoiceNo }}
                   </div>
                 </div>
 
@@ -130,7 +130,7 @@
               </div>
               <div class="hidden lg:block relative z-10 mt-6 pt-6 text-center border-t border-dashed border-slate-200 lg:text-left lg:mt-auto lg:pt-0 lg:border-0">
                 <p class="text-xs text-slate-600 lg:text-slate-200">Share this page</p>
-                <img class="mx-auto mt-3 rounded-lg border border-slate-200 shadow-sm lg:mx-0 lg:border-white/20 lg:shadow-xl" src="qr/{{ .page.MerchantID }}/{{ .page.PageUID }}" alt="Share QR code" />
+                <img class="mx-auto mt-3 rounded-lg border border-slate-200 shadow-sm lg:mx-0 lg:border-white/20 lg:shadow-xl" src="/qr/{{ .page.MerchantID }}/{{ .page.InvoiceNo }}" alt="Share QR code" />
               </div>
             </div>
             <div data-theme="light" class="data-[theme=dark]:bg-stone-950 data-[theme=light]:bg-white px-6 py-8 xs:px-8 sm:px-8 lg:px-10 lg:py-12 border-none data-[theme=dark]:border-stone-700 data-[theme=light]:border-slate-200 lg:border-t-0 lg:border-l data-[theme=dark]:border-white/20 data-[theme=light]:border-slate-200 lg:rounded-r-[32px]">
@@ -306,7 +306,7 @@
 
             <div class="lg:hidden relative z-10 mt-6 pt-6 text-center border-t border-dashed border-slate-200 lg:text-left lg:mt-auto lg:pt-0 lg:border-0">
               <p class="text-xs text-slate-600 lg:text-slate-200">Share this page</p>
-              <img class="mx-auto mt-3 rounded-lg border border-slate-200 shadow-sm lg:mx-0 lg:border-white/20 lg:shadow-xl" src="/qr/{{ .page.MerchantID }}/{{ .page.PageUID }}" alt="Share QR code" />
+              <img class="mx-auto mt-3 rounded-lg border border-slate-200 shadow-sm lg:mx-0 lg:border-white/20 lg:shadow-xl" src="/qr/{{ .page.MerchantID }}/{{ .page.InvoiceNo }}" alt="Share QR code" />
             </div>
 
             </div>
@@ -319,7 +319,7 @@
     <div
       id="page-data"
       data-merchant-id="{{ .page.MerchantID }}"
-      data-page-uid="{{ .page.PageUID }}"
+      data-invoice-no="{{ .page.InvoiceNo }}"
       data-store-name="{{ .page.StoreName }}"
       data-amount-cents="{{ .page.AmountCents }}"
       data-currency="{{ .page.Currency }}"
@@ -417,7 +417,7 @@
       let el = document.getElementById("page-data")
       console.log("payments: ", el.dataset.payments)
       let merchantId = el.dataset.merchantId
-      let pageUid = el.dataset.pageUid
+      let invoiceNo = el.dataset.invoiceNo
       let storeName = el.dataset.storeName || "Store"
       let amountCents = parseInt(el.dataset.amountCents || "0", 10) // todo have this be the balance instead
       let currency = el.dataset.currency || "USD"
@@ -449,7 +449,7 @@
 
       let msg = document.getElementById("msg")
 
-      let chargeUrl = "/api/payments/" + merchantId + "/" + pageUid + "/charge"
+      let chargeUrl = "/api/payments/" + merchantId + "/" + invoiceNo + "/charge"
       //! this gets called when datacap returns a token
       const tokenCallback = function (response, amountToCharge) {
         setPayLoading(false)
