@@ -395,6 +395,9 @@ func handleChargePayment(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "payment page closed or expired"})
 	}
 
+	pageJSON, _ := json.Marshal(page)
+	log.Println("Page details:", string(pageJSON))
+	log.Println("Webhook URL:", page.WebhookURL)
 	var req struct {
 		DatacapToken   string `json:"datacap_token"`
 		Last4          string `json:"last4"`
