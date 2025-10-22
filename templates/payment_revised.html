@@ -482,7 +482,12 @@
             setMsg(ok)
           })
           .catch(function (err) {
-            setMsg("Error: " + (err && err.message ? err.message : String(err)))
+            console.error("Error charging with token:", err)
+            if (err.message.toLowerCase().includes("internal")) {
+              setMsg("Declined: Please try again later or contact your bank.")
+            } else {
+              setMsg("Error: " + (err && err.message ? err.message : String(err)))
+            }
           })
           .finally(function () {
             setPayLoading(false)
