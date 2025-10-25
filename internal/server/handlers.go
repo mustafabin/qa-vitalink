@@ -417,7 +417,7 @@ func handleChargePayment(c echo.Context) error {
 	}
 	log.Println("Charging payment for page:", page.MerchantID, page.PageUID)
 
-	baseURL := "https://qa-vitasend-26847c8e9c67.herokuapp.com"
+	baseURL := "https://vitasend-afe713904efe.herokuapp.com"
 	endpoint := baseURL + "/v1/credit/sale"
 
 	if page.AmountCents < 1 {
