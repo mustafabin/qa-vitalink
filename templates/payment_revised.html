@@ -736,20 +736,24 @@
       }
 
       function getUrlParams() {
-        const params = new URLSearchParams(window.location.search)
+        const pathMatch = window.location.pathname.match(/\/p\/([^\/]+)\/([^\/]+)/)
+        if (pathMatch) {
+          return {
+            merchantId: pathMatch[1],
+            invoiceNo: pathMatch[2]
+          }
+        }
         return {
-          merchantId: params.get('merchant_id') || params.get('merchantId'),
-          invoiceNo: params.get('invoice_no') || params.get('invoiceNo')
+          merchantId: null,
+          invoiceNo: null
         }
       }
 
       function handleChargeWithToken(datacapToken, last4, brand, amountToCharge) {
-        // Re-validate merchant ID and invoice number from URL params at charge time
         const urlParams = getUrlParams()
         const datasetMerchantId = el.dataset.merchantId
         const datasetInvoiceNo = el.dataset.invoiceNo
 
-        // Use URL param if it exists and differs from dataset
         let chargeMerchantId = datasetMerchantId
         let chargeInvoiceNo = datasetInvoiceNo
 
