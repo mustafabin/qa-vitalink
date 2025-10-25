@@ -425,6 +425,9 @@
       let googlePayMid = el.dataset.googlePayMid || ""
       let webTokenMid = el.dataset.webtokenMid || ""
 
+      // Global variable to track the current amount due (remaining balance after payments)
+      let totalAmountCents = amountCents
+
       let methodCredit = document.getElementById("method-credit")
       let methodApple = document.getElementById("method-apple")
       let methodAppleWrapper = document.getElementById("method-apple-wrapper")
@@ -617,8 +620,9 @@
             setPayLoading(false)
             return
           }
-          console.log("requesting token")
-          DatacapWebToken.requestToken(webTokenMid, "payment_form", tokenCallback)
+          console.log("requesting token for balance:", formatAmount(totalAmountCents, currency))
+          // Pass the remaining balance (totalAmountCents) to tokenCallback
+          DatacapWebToken.requestToken(webTokenMid, "payment_form", (response) => tokenCallback(response, totalAmountCents))
         })
       }
 
@@ -630,7 +634,7 @@
       if (window.DatacapApplePay && DatacapApplePay.init) {
         console.log("Initializing Apple Pay ... ", webTokenMid, storeName, applePayMid, (totalAmount / 100).toFixed(2))
         try {
-          DatacapApplePay.init(tokenCallback, webTokenMid, storeName, applePayMid, (totalAmount / 100).toFixed(2))
+          DatacapApplePay.init((response) => tokenCallback(response, totalAmountCents), webTokenMid, storeName, applePayMid, (totalAmount / 100).toFixed(2))
         } catch (e) {
           console.log("Error initializing Apple Pay:", e)
         }
@@ -958,7 +962,7 @@
 
           // Enable/disable confirm button
           if (confirmSplit) {
-            confirmSplit.disabled = customAmount <= 0 || customAmount > (totalAmountCents / 100)
+            confirmSplit.disabled = customAmount <= 0 || selectedSplitAmount > totalAmountCents
           }
         })
       }
@@ -974,6 +978,12 @@
 
       function openSplitModal() {
         if (splitModal) {
+          // Check if there's a balance to split
+          if (totalAmountCents <= 0) {
+            if (paymentErrors) paymentErrors.textContent = "No balance due"
+            return
+          }
+
           // Initialize splitTotalValue with current balance
           splitTotalValue = totalAmountCents
 
@@ -987,6 +997,11 @@
           let splitCurrencySymbol = document.getElementById("split-currency-symbol")
           if (splitCurrencySymbol) {
             splitCurrencySymbol.textContent = currency === "USD" ? "$" : currency + " "
+          }
+
+          // Update custom amount input max value
+          if (customSplitAmount) {
+            customSplitAmount.max = (totalAmountCents / 100).toFixed(2)
           }
 
           let totalDue = totalAmountCents
@@ -1029,6 +1044,7 @@
       function processSplitPayment(splitAmountCents) {
         closeSplitModalHandler()
         if (splitAmountCents <= 0) {
+          if (paymentErrors) paymentErrors.textContent = "Invalid payment amount"
           return
         }
         // Process payment with split amount

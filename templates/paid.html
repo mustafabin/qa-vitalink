@@ -84,6 +84,11 @@
       #items_list .text-sm { color: var(--text-secondary) !important; }
       #items_list .font-medium { color: var(--text-primary) !important; }
 
+      /* Payment history styling */
+      #payments_list .text-sm { color: var(--text-primary) !important; }
+      #payments_list .text-xs { color: var(--text-tertiary) !important; }
+      #payments_list .font-semibold { color: var(--text-primary) !important; }
+
       /* Theme-aware logo display */
       .logo-light { display: block; }
       .logo-dark { display: none; }
@@ -202,7 +207,11 @@
       </svg>
     </button>
 
-         <div class="max-w-md mx-auto p-4" id="page-data" data-created-at-utc="{{ .page.CreatedAt.Format "2006-01-02T15:04:05Z07:00" }}" data-items-json='{{ .page.Items }}'>
+         <div class="max-w-md mx-auto p-4" id="page-data"
+              data-created-at-utc="{{ .page.CreatedAt.Format "2006-01-02T15:04:05Z07:00" }}"
+              data-items-json='{{ .page.Items }}'
+              data-payments='{{ .paymentsJSON }}'
+              data-currency="{{ .page.Currency }}">
           {{ if or .page.Logo .page.Logo2 }}
           <div class="flex justify-center mb-4">
             {{ if .page.Logo }}
@@ -259,6 +268,15 @@
             </div>
             {{ end }}
           </div>
+
+          {{ if .paymentsJSON }}
+          <div id="payments_list_wrapper" class="mt-6 rounded-xl bg-slate-50 p-4 border border-slate-200">
+            <h3 class="text-sm font-semibold mb-3">Payment History</h3>
+            <div id="payments_list" class="space-y-2 text-slate-700">
+              <!-- Payments will be populated by JavaScript -->
+            </div>
+          </div>
+          {{ end }}
 
           <div class="mt-6 pt-6 border-t border-dashed border-slate-300 text-center">
             <p class="text-sm font-medium text-emerald-700 inline-flex items-center gap-2">
@@ -372,6 +390,60 @@
           }
         }
       } catch (e) {}
+
+      // Render payment history
+      try {
+        var paymentsRoot = document.getElementById('payments_list')
+        var paymentsJSON = el?.dataset?.payments || ''
+        var currency = el?.dataset?.currency || 'USD'
+
+        if (paymentsRoot && paymentsJSON) {
+          var payments = JSON.parse(paymentsJSON)
+          if (Array.isArray(payments) && payments.length > 0) {
+            paymentsRoot.innerHTML = payments.map(function (payment) {
+              var last4 = (payment && payment.last4) || '****'
+              var brand = (payment && payment.brand) || 'Card'
+              var amountCents = (payment && payment.amount_cents) || 0
+              var createdAt = (payment && payment.created_at) || ''
+
+              // Format date
+              var formattedDate = ''
+              if (createdAt) {
+                try {
+                  var date = new Date(createdAt)
+                  if (!isNaN(date.getTime())) {
+                    formattedDate = date.toLocaleString()
+                  }
+                } catch (e) {
+                  formattedDate = createdAt
+                }
+              }
+
+              // Format amount
+              var amount = (amountCents / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+              var formattedAmount = currency === 'USD' ? '$' + amount : amount + ' ' + currency
+
+              return '<div class="flex items-center justify-between p-3 rounded-lg border border-slate-200">\
+                        <div class="flex items-center gap-3">\
+                          <div>\
+                            <div class="text-sm font-semibold">' + brand + ' •••• ' + last4 + '</div>\
+                            <div class="text-xs text-slate-500">' + formattedDate + '</div>\
+                          </div>\
+                        </div>\
+                        <div class="text-right">\
+                          <div class="text-base font-bold text-emerald-600">' + formattedAmount + '</div>\
+                          <div class="text-xs text-slate-500 font-medium">Paid</div>\
+                        </div>\
+                      </div>'
+            }).join('')
+          } else {
+            var wrapper = document.getElementById('payments_list_wrapper')
+            if (wrapper) wrapper.remove()
+          }
+        }
+      } catch (e) {
+        console.error('Error parsing payments:', e)
+      }
      </script>
    </body>
  </html>
