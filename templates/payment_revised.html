@@ -630,13 +630,15 @@
       if (methodCredit) methodCredit.addEventListener("change", togglePaymentMethod)
       if (methodApple) methodApple.addEventListener("change", togglePaymentMethod)
 
-      const totalAmount = amountCents
-      if (window.DatacapApplePay && DatacapApplePay.init) {
-        console.log("Initializing Apple Pay ... ", webTokenMid, storeName, applePayMid, (totalAmount / 100).toFixed(2))
-        try {
-          DatacapApplePay.init((response) => tokenCallback(response, totalAmountCents), webTokenMid, storeName, applePayMid, (totalAmount / 100).toFixed(2))
-        } catch (e) {
-          console.log("Error initializing Apple Pay:", e)
+      // Function to initialize Apple Pay with current balance
+      function initializeApplePay() {
+        if (window.DatacapApplePay && DatacapApplePay.init) {
+          console.log("Initializing Apple Pay with balance:", (totalAmountCents / 100).toFixed(2))
+          try {
+            DatacapApplePay.init((response) => tokenCallback(response, totalAmountCents), webTokenMid, storeName, applePayMid, (totalAmountCents / 100).toFixed(2))
+          } catch (e) {
+            console.log("Error initializing Apple Pay:", e)
+          }
         }
       }
 
@@ -719,8 +721,13 @@
           amountDisplayElementDesktop.textContent = formatAmount(amountDueCents, currency)
         }
 
-        // Update global total for Apple Pay
+        // Update global total and reinitialize Apple Pay with new balance
         totalAmountCents = amountDueCents
+
+        // Reinitialize Apple Pay with updated balance
+        if (typeof initializeApplePay === 'function') {
+          initializeApplePay()
+        }
       }
 
       function setMsg(text) {
@@ -887,6 +894,9 @@
       updateAmountDisplay()
 
       togglePaymentMethod()
+
+      // Initialize Apple Pay after balance is calculated
+      initializeApplePay()
 
 
 
