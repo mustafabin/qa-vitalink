@@ -248,8 +248,13 @@ func handleViewPaymentPage(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]any{"error": "error grabbing check values"})
 	}
 
+	if len(pp.Payments) > 0 {
+		paymentJSON, _ := json.Marshal(pp.Payments[0])
+		log.Println("Payments:", string(paymentJSON))
+	}
+	paymentsJSON, _ := json.Marshal(pp.Payments)
 	if pp.Status == "paid" {
-		return c.Render(http.StatusOK, "paid.html", map[string]any{"page": pp})
+		return c.Render(http.StatusOK, "paid.html", map[string]any{"page": pp, "paymentsJSON": string(paymentsJSON)})
 	}
 
 	if pp.ExpireAt != nil && pp.ExpireAt.Before(time.Now()) {
@@ -258,11 +263,7 @@ func handleViewPaymentPage(c echo.Context) error {
 	log.Println("Rendering payment page for:", pp.MerchantID, pp.PageUID)
 	log.Println("Apple Pay MID:", pp.ApplePayMid)
 	log.Println("Google Pay MID:", pp.GooglePayMid)
-	if len(pp.Payments) > 0 {
-		paymentJSON, _ := json.Marshal(pp.Payments[0])
-		log.Println("Payments:", string(paymentJSON))
-	}
-	paymentsJSON, _ := json.Marshal(pp.Payments)
+
 	return c.Render(http.StatusOK, "payment_revised.html", map[string]any{
 		"page": pp,
 		"paymentsJSON": string(paymentsJSON),
@@ -395,6 +396,9 @@ func handleChargePayment(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]any{"error": "payment page closed or expired"})
 	}
 
+	pageJSON, _ := json.Marshal(page)
+	log.Println("Page details:", string(pageJSON))
+	log.Println("Webhook URL:", page.WebhookURL)
 	var req struct {
 		DatacapToken   string `json:"datacap_token"`
 		Last4          string `json:"last4"`
@@ -483,6 +487,9 @@ func handleChargePayment(c echo.Context) error {
 
 	approved := false
 	approvedAmount := 0.0
+	dcRespJSON, _ := json.Marshal(dcResp)
+	log.Println("Datacap response:", string(dcRespJSON))
+	log.Println("Approved amount:", dcResp["ApprovedAmount"])
 	message := ""
 	if v, ok := dcResp["Status"].(string); ok && strings.EqualFold(v, "Approved") {
 		approved = true
@@ -490,9 +497,12 @@ func handleChargePayment(c echo.Context) error {
 	if v, ok := dcResp["Message"].(string); ok && message == "" {
 		message = v
 	}
-	if v, ok := dcResp["ApprovedAmount"].(float64); ok {
-		approvedAmount = v
+	approvedAmount, err = strconv.ParseFloat(dcResp["ApprovedAmount"].(string), 64)
+	if err != nil {
+		log.Println("Error parsing approved amount:", err)
+		approvedAmount = 0.0
 	}
+
 	if message == "" {
 		message = strings.TrimSpace(string(respBytes))
 	}

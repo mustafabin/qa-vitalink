@@ -111,7 +111,7 @@
                     </div>
                   </div>
                   <div class="mt-2 text-[11px]">
-                    Page ID: {{ .page.PageUID }}
+                    Invoice No: {{ .page.InvoiceNo }}
                   </div>
                 </div>
 
@@ -130,7 +130,7 @@
               </div>
               <div class="hidden lg:block relative z-10 mt-6 pt-6 text-center border-t border-dashed border-slate-200 lg:text-left lg:mt-auto lg:pt-0 lg:border-0">
                 <p class="text-xs text-slate-600 lg:text-slate-200">Share this page</p>
-                <img class="mx-auto mt-3 rounded-lg border border-slate-200 shadow-sm lg:mx-0 lg:border-white/20 lg:shadow-xl" src="qr/{{ .page.MerchantID }}/{{ .page.PageUID }}" alt="Share QR code" />
+                <img class="mx-auto mt-3 rounded-lg border border-slate-200 shadow-sm lg:mx-0 lg:border-white/20 lg:shadow-xl" src="/qr/{{ .page.MerchantID }}/{{ .page.InvoiceNo }}" alt="Share QR code" />
               </div>
             </div>
             <div data-theme="light" class="data-[theme=dark]:bg-stone-950 data-[theme=light]:bg-white px-6 py-8 xs:px-8 sm:px-8 lg:px-10 lg:py-12 border-none data-[theme=dark]:border-stone-700 data-[theme=light]:border-slate-200 lg:border-t-0 lg:border-l data-[theme=dark]:border-white/20 data-[theme=light]:border-slate-200 lg:rounded-r-[32px]">
@@ -306,7 +306,7 @@
 
             <div class="lg:hidden relative z-10 mt-6 pt-6 text-center border-t border-dashed border-slate-200 lg:text-left lg:mt-auto lg:pt-0 lg:border-0">
               <p class="text-xs text-slate-600 lg:text-slate-200">Share this page</p>
-              <img class="mx-auto mt-3 rounded-lg border border-slate-200 shadow-sm lg:mx-0 lg:border-white/20 lg:shadow-xl" src="/qr/{{ .page.MerchantID }}/{{ .page.PageUID }}" alt="Share QR code" />
+              <img class="mx-auto mt-3 rounded-lg border border-slate-200 shadow-sm lg:mx-0 lg:border-white/20 lg:shadow-xl" src="/qr/{{ .page.MerchantID }}/{{ .page.InvoiceNo }}" alt="Share QR code" />
             </div>
 
             </div>
@@ -319,7 +319,7 @@
     <div
       id="page-data"
       data-merchant-id="{{ .page.MerchantID }}"
-      data-page-uid="{{ .page.PageUID }}"
+      data-invoice-no="{{ .page.InvoiceNo }}"
       data-store-name="{{ .page.StoreName }}"
       data-amount-cents="{{ .page.AmountCents }}"
       data-currency="{{ .page.Currency }}"
@@ -417,13 +417,16 @@
       let el = document.getElementById("page-data")
       console.log("payments: ", el.dataset.payments)
       let merchantId = el.dataset.merchantId
-      let pageUid = el.dataset.pageUid
+      let invoiceNo = el.dataset.invoiceNo
       let storeName = el.dataset.storeName || "Store"
       let amountCents = parseInt(el.dataset.amountCents || "0", 10) // todo have this be the balance instead
       let currency = el.dataset.currency || "USD"
       let applePayMid = el.dataset.applePayMid || ""
       let googlePayMid = el.dataset.googlePayMid || ""
       let webTokenMid = el.dataset.webtokenMid || ""
+
+      // Global variable to track the current amount due (remaining balance after payments)
+      let totalAmountCents = amountCents
 
       let methodCredit = document.getElementById("method-credit")
       let methodApple = document.getElementById("method-apple")
@@ -449,7 +452,7 @@
 
       let msg = document.getElementById("msg")
 
-      let chargeUrl = "/api/payments/" + merchantId + "/" + pageUid + "/charge"
+      let chargeUrl = "/api/payments/" + merchantId + "/" + invoiceNo + "/charge"
       //! this gets called when datacap returns a token
       const tokenCallback = function (response, amountToCharge) {
         setPayLoading(false)
@@ -482,7 +485,12 @@
             setMsg(ok)
           })
           .catch(function (err) {
-            setMsg("Error: " + (err && err.message ? err.message : String(err)))
+            console.error("Error charging with token:", err)
+            if (err.message.toLowerCase().includes("internal")) {
+              setMsg("Declined: Please try again later or contact your bank.")
+            } else {
+              setMsg("Error: " + (err && err.message ? err.message : String(err)))
+            }
           })
           .finally(function () {
             setPayLoading(false)
@@ -612,8 +620,9 @@
             setPayLoading(false)
             return
           }
-          console.log("requesting token")
-          DatacapWebToken.requestToken(webTokenMid, "payment_form", tokenCallback)
+          console.log("requesting token for balance:", formatAmount(totalAmountCents, currency))
+          // Pass the remaining balance (totalAmountCents) to tokenCallback
+          DatacapWebToken.requestToken(webTokenMid, "payment_form", (response) => tokenCallback(response, totalAmountCents))
         })
       }
 
@@ -625,7 +634,7 @@
       if (window.DatacapApplePay && DatacapApplePay.init) {
         console.log("Initializing Apple Pay ... ", webTokenMid, storeName, applePayMid, (totalAmount / 100).toFixed(2))
         try {
-          DatacapApplePay.init(tokenCallback, webTokenMid, storeName, applePayMid, (totalAmount / 100).toFixed(2))
+          DatacapApplePay.init((response) => tokenCallback(response, totalAmountCents), webTokenMid, storeName, applePayMid, (totalAmount / 100).toFixed(2))
         } catch (e) {
           console.log("Error initializing Apple Pay:", e)
         }
@@ -730,8 +739,42 @@
         }
       }
 
+      function getUrlParams() {
+        const pathMatch = window.location.pathname.match(/\/p\/([^\/]+)\/([^\/]+)/)
+        if (pathMatch) {
+          return {
+            merchantId: pathMatch[1],
+            invoiceNo: pathMatch[2]
+          }
+        }
+        return {
+          merchantId: null,
+          invoiceNo: null
+        }
+      }
+
       function handleChargeWithToken(datacapToken, last4, brand, amountToCharge) {
-        return fetch(chargeUrl, {
+        const urlParams = getUrlParams()
+        const datasetMerchantId = el.dataset.merchantId
+        const datasetInvoiceNo = el.dataset.invoiceNo
+
+        let chargeMerchantId = datasetMerchantId
+        let chargeInvoiceNo = datasetInvoiceNo
+
+        if (urlParams.merchantId && urlParams.merchantId !== datasetMerchantId) {
+          console.log("Charge validation: Using merchant ID from URL params:", urlParams.merchantId)
+          chargeMerchantId = urlParams.merchantId
+        }
+
+        if (urlParams.invoiceNo && urlParams.invoiceNo !== datasetInvoiceNo) {
+          console.log("Charge validation: Using invoice number from URL params:", urlParams.invoiceNo)
+          chargeInvoiceNo = urlParams.invoiceNo
+        }
+
+        // Construct charge URL with validated parameters
+        const validatedChargeUrl = "/api/payments/" + chargeMerchantId + "/" + chargeInvoiceNo + "/charge"
+
+        return fetch(validatedChargeUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -919,7 +962,7 @@
 
           // Enable/disable confirm button
           if (confirmSplit) {
-            confirmSplit.disabled = customAmount <= 0 || customAmount > (totalAmountCents / 100)
+            confirmSplit.disabled = customAmount <= 0 || selectedSplitAmount > totalAmountCents
           }
         })
       }
@@ -935,6 +978,12 @@
 
       function openSplitModal() {
         if (splitModal) {
+          // Check if there's a balance to split
+          if (totalAmountCents <= 0) {
+            if (paymentErrors) paymentErrors.textContent = "No balance due"
+            return
+          }
+
           // Initialize splitTotalValue with current balance
           splitTotalValue = totalAmountCents
 
@@ -948,6 +997,11 @@
           let splitCurrencySymbol = document.getElementById("split-currency-symbol")
           if (splitCurrencySymbol) {
             splitCurrencySymbol.textContent = currency === "USD" ? "$" : currency + " "
+          }
+
+          // Update custom amount input max value
+          if (customSplitAmount) {
+            customSplitAmount.max = (totalAmountCents / 100).toFixed(2)
           }
 
           let totalDue = totalAmountCents
@@ -975,6 +1029,8 @@
       function closeSplitModalHandler() {
         if (splitModal) {
           splitModal.classList.add("hidden")
+          // remove all the data-selected attributes from the split option buttons
+          splitOptionBtns.forEach(b => b.dataset.selected = "false")
         }
       }
 
@@ -988,6 +1044,7 @@
       function processSplitPayment(splitAmountCents) {
         closeSplitModalHandler()
         if (splitAmountCents <= 0) {
+          if (paymentErrors) paymentErrors.textContent = "Invalid payment amount"
           return
         }
         // Process payment with split amount
