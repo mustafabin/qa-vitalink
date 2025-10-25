@@ -735,6 +735,14 @@
         }
       }
 
+      function getUrlParams() {
+        const params = new URLSearchParams(window.location.search)
+        return {
+          merchantId: params.get('merchant_id') || params.get('merchantId'),
+          invoiceNo: params.get('invoice_no') || params.get('invoiceNo')
+        }
+      }
+
       function handleChargeWithToken(datacapToken, last4, brand, amountToCharge) {
         // Re-validate merchant ID and invoice number from URL params at charge time
         const urlParams = getUrlParams()
