@@ -736,7 +736,29 @@
       }
 
       function handleChargeWithToken(datacapToken, last4, brand, amountToCharge) {
-        return fetch(chargeUrl, {
+        // Re-validate merchant ID and invoice number from URL params at charge time
+        const urlParams = getUrlParams()
+        const datasetMerchantId = el.dataset.merchantId
+        const datasetInvoiceNo = el.dataset.invoiceNo
+
+        // Use URL param if it exists and differs from dataset
+        let chargeMerchantId = datasetMerchantId
+        let chargeInvoiceNo = datasetInvoiceNo
+
+        if (urlParams.merchantId && urlParams.merchantId !== datasetMerchantId) {
+          console.log("Charge validation: Using merchant ID from URL params:", urlParams.merchantId)
+          chargeMerchantId = urlParams.merchantId
+        }
+
+        if (urlParams.invoiceNo && urlParams.invoiceNo !== datasetInvoiceNo) {
+          console.log("Charge validation: Using invoice number from URL params:", urlParams.invoiceNo)
+          chargeInvoiceNo = urlParams.invoiceNo
+        }
+
+        // Construct charge URL with validated parameters
+        const validatedChargeUrl = "/api/payments/" + chargeMerchantId + "/" + chargeInvoiceNo + "/charge"
+
+        return fetch(validatedChargeUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
