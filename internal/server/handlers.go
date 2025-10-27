@@ -253,6 +253,14 @@ func handleViewPaymentPage(c echo.Context) error {
 		log.Println("Payments:", string(paymentJSON))
 	}
 	paymentsJSON, _ := json.Marshal(pp.Payments)
+	log.Println("Payments", string(paymentsJSON))
+	var amountPaid int64
+	for _, payment := range pp.Payments {
+		amountPaid += payment.AmountCents
+	}
+	log.Println("Amount paid:", amountPaid)
+	log.Println("Amount due:", pp.AmountCents)
+	log.Println("is payments equal or greater than amount due?", amountPaid >= pp.AmountCents)
 	if pp.Status == "paid" {
 		return c.Render(http.StatusOK, "paid.html", map[string]any{"page": pp, "paymentsJSON": string(paymentsJSON)})
 	}
