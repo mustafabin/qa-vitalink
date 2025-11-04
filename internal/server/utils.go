@@ -9,7 +9,7 @@ import (
 )
 
 func grabCheckValues(merchantID string, pageUID string) (*CheckResponse, error) {
-	baseURL := "https://vitasend-afe713904efe.herokuapp.com"
+	baseURL := "https://qa-vitasend-26847c8e9c67.herokuapp.com"
 	url := fmt.Sprintf("%s/check/%s/%s", baseURL, merchantID, pageUID)
 	resp, err := http.Get(url)
 	if err != nil {
