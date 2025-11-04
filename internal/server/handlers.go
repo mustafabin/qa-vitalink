@@ -511,7 +511,7 @@ func handleChargePayment(c echo.Context) error {
 		approvedAmount = 0.0
 	}
 	cardholderId := ""
-	if v, ok := dcResp["CardholderID"].(string); ok {
+	if v, ok := dcResp["CardHolderID"].(string); ok {
 		cardholderId = v
 	}
 
@@ -540,6 +540,9 @@ func handleChargePayment(c echo.Context) error {
 		}
 		if page.InvoiceNo == "" {
 			webhookData["properties"].(map[string]interface{})["invoiceId"] = page.PageUID
+		}
+		if cardholderId != "" {
+			webhookData["properties"].(map[string]interface{})["cardholderId"] = cardholderId
 		}
 		SendToWebhook(page.WebhookURL, webhookData)
 		return c.JSON(http.StatusOK, map[string]any{
